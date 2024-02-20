@@ -1,9 +1,9 @@
 # Tak Rules of Play
 
-Tak is played on a square board with even spaces like a chessboard. Unlike most other strategy games, however, it can be played on several different-sized boards. At the beginning of the game, the board starts empty and each player is given the appropriate number of stones for the board size, as listed below:
-5x5 = 21 stones per player
-6x6 = 30 stones per player
-7x7 = 40 stones per player + 1 extra Capstone
+Tak is played on a square board with even spaces like a chessboard. Unlike most other strategy games, however, it can be played on several different-sized boards. At the beginning of the game, the board starts empty and each player is given the appropriate number of stones for the board size, as listed below:\n
+5x5 = 21 stones per player\n
+6x6 = 30 stones per player\n
+7x7 = 40 stones per player + 1 extra Capstone\n
   # Starting Play
 Players alternate turns throughout the game. You must play on your turn – there is no option to pass. Tak is played with only orthogonal movement and connection; squares are not connected diagonally and diagonal movement is not possible. On each player’s first turn, they will place one of their opponent’s stones flat on any empty square of the board. Play then continues with players placing new stones or moving existing stones they control.
   #On Your Turn
