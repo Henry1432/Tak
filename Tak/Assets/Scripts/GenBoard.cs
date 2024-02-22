@@ -8,6 +8,8 @@ public class GenBoard : MonoBehaviour
 {
     public static GenBoard instance;
     public Dictionary<(float,float), Tile> board = new Dictionary<(float, float), Tile>();
+    public int maxTiles;
+    public bool extraCapstone = false;
 
     [SerializeField] private float sizeOfBoard;
     [SerializeField] private Sprite sprite;
@@ -24,6 +26,20 @@ public class GenBoard : MonoBehaviour
         }
 
         transform.position = transform.position - (Vector3)((Vector2.one/2) * sizeOfBoard);
+
+        if (sizeOfBoard == 5)
+        {
+            maxTiles = 21;
+        }
+        else if (sizeOfBoard == 6)
+        {
+            maxTiles = 30;
+        }
+        else if (sizeOfBoard == 7)
+        {
+            maxTiles = 40;
+            extraCapstone = true;
+        }
     }
 
     private void Update()
@@ -46,7 +62,8 @@ public class GenBoard : MonoBehaviour
                     obj.name = "Tile " + x + ", " + y;
                 Tile temp = obj.AddComponent<Tile>();
                     temp.InitTile(transform.position, new Vector2(x, y), swap ? TileColor.White : TileColor.Black);
-                temp.SetSprite(sprite);
+                    temp.SetSprite(sprite);
+                    temp.stonesOnTile.Clear();
                     swap = !swap;
 
                 board.Add((x, y), temp);
@@ -56,16 +73,24 @@ public class GenBoard : MonoBehaviour
 
     public Tile getTile(Vector3 position, out bool success)
     {
-        Vector3 offset = (position - transform.position);
-
-        Vector2Int tilePos = new Vector2Int((int)offset.x, (int)offset.y);
-
-        if(tilePos.x < sizeOfBoard && tilePos.y < sizeOfBoard)
+        try
         {
-            success = true;
-            return board[(tilePos.x, tilePos.y)];
+            Vector3 offset = (position - transform.position);
+
+            Vector2Int tilePos = new Vector2Int((int)offset.x, (int)offset.y);
+
+            if(tilePos.x < sizeOfBoard && tilePos.y < sizeOfBoard)
+            {
+                success = true;
+                return board[(tilePos.x, tilePos.y)];
+            }
+            success = false;
+            return null;
         }
-        success = false;
-        return null;
+        catch
+        {
+            success = false;
+            return null;
+        }
     }
 }

@@ -13,6 +13,7 @@ public enum TileColor
 public class Tile : MonoBehaviour
 {
     public TileColor tileColor = TileColor.None;
+    public List<Stone> stonesOnTile = new List<Stone>();
     public Vector2 boardPosition = -Vector2.one;
     private Vector3 boardOrigin;
     private SpriteRenderer sr;
