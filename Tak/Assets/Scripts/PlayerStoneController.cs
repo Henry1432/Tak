@@ -9,14 +9,33 @@ public class PlayerStoneController : MonoBehaviour
     public Sprite stoneSprite;
     private CircleCollider2D col;
 
+    [SerializeField] private int nextTile = 0;
+
     private void Start()
     {
         col = GetComponent<CircleCollider2D>();
+        GameObject stoneSave = new GameObject();
+        stoneSave.name = playerColor.ToString();
+        for (int i = 0;  i < GenBoard.instance.maxTiles; i++)
+        {
+            GameObject tempObj = new GameObject("Stone" + (stones.Count + 1));
+            tempObj.transform.parent = stoneSave.transform;
+            tempObj.AddComponent<BoxCollider2D>();
+            Stone tempStone = tempObj.AddComponent<Stone>();
+            tempStone.playerStone = this;
+            tempObj.GetComponent<SpriteRenderer>().sprite = stoneSprite;
+            tempStone.stoneColor = playerColor;
+            tempStone.setFollow(true);
+            tempStone.setOffset(Vector3.zero);
+            stones.Add(tempStone);
+
+            tempObj.SetActive(false);
+        }
     }
 
     private void Update()
     {
-        if(Input.GetMouseButtonDown(0) && stones.Count < GenBoard.instance.maxTiles)
+        if(Input.GetMouseButtonDown(0) && nextTile < GenBoard.instance.maxTiles)
         {
             Vector3 mousePos = Input.mousePosition;
             mousePos.z = Camera.main.nearClipPlane;
@@ -24,16 +43,13 @@ public class PlayerStoneController : MonoBehaviour
 
             if(Vector3.Distance(col.ClosestPoint(worldPos), worldPos) == 0)
             {
-                GameObject tempObj = new GameObject("Stone" + (stones.Count + 1));
-                tempObj.AddComponent<BoxCollider2D>();
-                Stone tempStone = tempObj.AddComponent<Stone>();
-                tempStone.playerStone = this;
-                tempObj.GetComponent<SpriteRenderer>().sprite = stoneSprite;
-                tempStone.stoneColor = playerColor;
-                tempStone.setFollow(true);
-                tempStone.setOffset(Vector3.zero);
-                stones.Add(tempStone);
+                stones[nextTile].gameObject.SetActive(true);
+                stones[nextTile].transform.position = worldPos;
+                nextTile = nextTile >= stones.Count ? stones.Count-1 : nextTile + 1;
             }
         }
     }
+
+    public int GetNext() { return nextTile; }
+    public void SetNext(int next) {  nextTile = next; }
 }
