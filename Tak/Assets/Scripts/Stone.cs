@@ -94,7 +94,7 @@ public class Stone : MonoBehaviour
             {
                 if(!onTile) 
                 { 
-                    if (GenBoard.instance.board[(currentTile.boardPosition.x, currentTile.boardPosition.y)].stonesOnTile.Count == 0)
+                    if (GenBoard.instance.board[(currentTile.boardPosition.x, currentTile.boardPosition.y)].stonesOnTile.Count == 0 || placed)
                     {
                         transform.position = new Vector3(currentTile.transform.position.x, currentTile.transform.position.y, transform.position.z);
                         GenBoard.instance.board[(currentTile.boardPosition.x, currentTile.boardPosition.y)].stonesOnTile.Add(this);

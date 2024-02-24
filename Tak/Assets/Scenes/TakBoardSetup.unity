@@ -155,7 +155,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ring: {fileID: 21300000, guid: 917b0b93eba0c8b48ac930eb21f2e905, type: 3}
   selectedTile: {fileID: 0}
-  offset: {x: 0.02, y: -0.055}
+  offset: {x: 0.02, y: -0.055, z: -1}
+  moveColor: 0
+  movingTiles: []
 --- !u!4 &81799024
 Transform:
   m_ObjectHideFlags: 0
