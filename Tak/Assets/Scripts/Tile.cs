@@ -24,6 +24,14 @@ public class Tile : MonoBehaviour
             sr = GetComponent<SpriteRenderer>();
     }
 
+    private void Update()
+    {
+        for(int i = 0; i < stonesOnTile.Count; i++)
+        {
+            stonesOnTile[i].transform.localPosition = new Vector3(stonesOnTile[i].transform.localPosition.x, stonesOnTile[i].transform.localPosition.y, -i);
+        }
+    }
+
     public void InitTile(Vector3 boardOrigin, Vector2 TilePos, TileColor tileColor)
     {
         sr = GetComponent<SpriteRenderer>();

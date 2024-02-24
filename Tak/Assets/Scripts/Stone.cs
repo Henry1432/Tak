@@ -61,28 +61,29 @@ public class Stone : MonoBehaviour
             Vector3 tempPos = Input.mousePosition;
             tempPos.z = Camera.main.nearClipPlane;
             mousePos = Camera.main.ScreenToWorldPoint(tempPos);
-            if (Input.GetMouseButtonDown(0))
+
+            if (Vector3.Distance(col.ClosestPoint(mousePos), mousePos) == 0)
             {
-                if (Vector3.Distance(col.ClosestPoint(mousePos), mousePos) == 0)
+                if (Input.GetMouseButtonDown(0))
                 {
                     follow = true;
                     mouseOffset = (Vector2)transform.position - mousePos;
                     mouseOffset.z = transform.position.z;
-                }
 
-                if(onTile)
-                {
-                    currentTile.stonesOnTile.Remove(this);
-                    onTile = false;
+                    if (onTile)
+                    {
+                        currentTile.stonesOnTile.Remove(this);
+                        onTile = false;
+                    }
                 }
-            }
-            else if (Input.GetMouseButtonUp(0))
-            {
-                follow = false;
-            }
-            else if(Input.GetMouseButtonDown(1))
-            {
-                wall = !wall;
+                else if (Input.GetMouseButtonUp(0))
+                {
+                    follow = false;
+                }
+                else if (Input.GetMouseButtonDown(1))
+                {
+                    wall = !wall;
+                }
             }
 
 

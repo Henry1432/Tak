@@ -155,9 +155,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ring: {fileID: 21300000, guid: 917b0b93eba0c8b48ac930eb21f2e905, type: 3}
   selectedTile: {fileID: 0}
-  offset: {x: 0.02, y: -0.055, z: -1}
+  offset: {x: 0.02, y: -0.055, z: -10}
   moveColor: 0
-  movingTiles: []
+  movingStones: []
 --- !u!4 &81799024
 Transform:
   m_ObjectHideFlags: 0
@@ -448,7 +448,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -12}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

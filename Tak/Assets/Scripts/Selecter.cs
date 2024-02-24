@@ -2,6 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
+
+public enum Direction
+{
+    Up,
+    Down,
+    Left,
+    Right,
+}
 
 [RequireComponent(typeof(SpriteRenderer))]
 public class Selecter : MonoBehaviour
@@ -11,8 +20,8 @@ public class Selecter : MonoBehaviour
     public Vector3 offset;
 
     public TileColor moveColor = TileColor.White;
-    public List<Stone> movingTiles = new List<Stone>();
-    private List<Stone> leaveTiles = new List<Stone>();
+    public List<Stone> movingStones = new List<Stone>();
+    private List<Stone> leaveStones = new List<Stone>();
 
     private SpriteRenderer sr;
     private bool highlight = true;
@@ -30,26 +39,99 @@ public class Selecter : MonoBehaviour
         {
             foreach (Stone stone in selectedTile.stonesOnTile) 
             { 
-                if(!leaveTiles.Contains(stone) && !movingTiles.Contains(stone))
+                if(!leaveStones.Contains(stone) && !movingStones.Contains(stone))
                 {
-                    movingTiles.Add(stone);
+                    movingStones.Add(stone);
                 }
             }
 
-            if(Input.GetKeyDown(KeyCode.Space) && movingTiles.Count > 0)
+            if(Input.GetKeyDown(KeyCode.Space) && movingStones.Count > 0)
             {
-                leaveTiles.Add(movingTiles.First());
-                movingTiles.Remove(movingTiles.First());
+                leaveStones.Add(movingStones.First());
+                movingStones.Remove(movingStones.First());
             }
-
-            if(Input.GetKeyDown(KeyCode.DownArrow) && movingTiles.Count > 0)
+            if(movingStones.Count > 0)
             {
-                //move tile down, think about how they are shown when placed
+                if(Input.GetKeyDown(KeyCode.UpArrow))
+                {
+                    MoveStones(Direction.Up);
+                }
+                else if (Input.GetKeyDown(KeyCode.DownArrow))
+                {
+                    MoveStones(Direction.Down);
+                }
+                else if (Input.GetKeyDown(KeyCode.RightArrow))
+                {
+                    MoveStones(Direction.Right);
+                }
+                else if (Input.GetKeyDown(KeyCode.LeftArrow))
+                {
+                    MoveStones(Direction.Left);
+                }
             }
         }
     }
-    
 
+    public void MoveStones(Direction dir)
+    {
+        Tile newTile = selectedTile;
+        bool success = false;
+        if (dir == Direction.Up)
+        {
+            newTile = GenBoard.instance.getTile(selectedTile.transform.position + Vector3.up, out success);
+        }
+        else if (dir == Direction.Down)
+        {
+            newTile = GenBoard.instance.getTile(selectedTile.transform.position + Vector3.down, out success);
+        }
+        else if (dir == Direction.Right)
+        {
+            newTile = GenBoard.instance.getTile(selectedTile.transform.position + Vector3.right, out success);
+        }
+        else if (dir == Direction.Left)
+        {
+            newTile = GenBoard.instance.getTile(selectedTile.transform.position + Vector3.left, out success);
+        }
+
+        if(success)
+        {
+            MoveStonesToTile(newTile);
+        }
+
+        ShowStoneSet();
+    }
+
+    private void MoveStonesToTile(Tile tile)
+    {
+        foreach(Stone stone in movingStones)
+        {
+            if(tile.stonesOnTile.Count > 0)
+            {
+                if(!tile.stonesOnTile.Last().wall)
+                {
+                    stone.currentTile.stonesOnTile.Remove(stone);
+                    stone.currentTile = tile;
+                    stone.transform.position = stone.currentTile.transform.position;
+                    stone.currentTile.stonesOnTile.Add(stone);
+
+                    transform.position = stone.currentTile.transform.position + (Vector3)offset;
+                    selectedTile = stone.currentTile;
+                }
+            }
+            else
+            {
+                stone.currentTile.stonesOnTile.Remove(stone);
+                stone.currentTile = tile;
+                stone.transform.position = stone.currentTile.transform.position;
+                stone.currentTile.stonesOnTile.Add(stone);
+
+                transform.position = stone.currentTile.transform.position + (Vector3)offset;
+                selectedTile = stone.currentTile;
+            }
+        }
+        movingStones.Clear();
+        leaveStones.Clear();
+    }
 
     private void SelectMoveCheck()
     {
@@ -62,8 +144,8 @@ public class Selecter : MonoBehaviour
             if (click)
             {
                 highlight = false;
-                leaveTiles.Clear();
-                movingTiles.Clear();
+                leaveStones.Clear();
+                movingStones.Clear();
             }
 
             bool success;
@@ -86,6 +168,11 @@ public class Selecter : MonoBehaviour
 
     private void ShowStoneSet()
     {
+        for (int i = 0; i < StoneShow.instance.renderers.Count; i++)
+        {
+            StoneShow.instance.fixWall(i);
+            StoneShow.instance.renderers[i].gameObject.SetActive(false);
+        }
         if (selectedTile != null)
         {
             if (selectedTile.stonesOnTile.Count == 0)
@@ -112,14 +199,6 @@ public class Selecter : MonoBehaviour
 
                     StoneShow.instance.renderers[i].gameObject.SetActive(true);
                 }
-            }
-        }
-        else
-        {
-            for (int i = 0; i < StoneShow.instance.renderers.Count; i++)
-            {
-                StoneShow.instance.fixWall(i);
-                StoneShow.instance.renderers[i].gameObject.SetActive(false);
             }
         }
     }

@@ -28,13 +28,13 @@ public class StoneShow : MonoBehaviour
         for(int i = 0; i < GenBoard.instance.getSize(); i++)
         {
             GameObject tempObj = new GameObject();
-            tempObj.transform.position = transform.position + (Vector3)(Vector2.up * squareHeight * i);
             tempObj.transform.parent = transform;
+            tempObj.transform.localPosition = (Vector3)(Vector2.up * squareHeight * i);
             tempObj.name = i.ToString();
             tempObj.SetActive(false);
             SpriteRenderer tempSr = tempObj .AddComponent<SpriteRenderer>();
             tempSr.sprite = square;
-            tempObj.transform.localScale = new Vector2 (size.x, squareHeight);
+            tempObj.transform.localScale = new Vector2 (size.x, squareHeight );
             renderers.Add(tempSr);
         }
     }
@@ -45,7 +45,7 @@ public class StoneShow : MonoBehaviour
         {
             float squareHeight = size.y / GenBoard.instance.getSize();
             renderers[i].gameObject.transform.localScale = new Vector2(squareHeight, size.x);
-            renderers[i].gameObject.transform.localPosition = Vector3.forward * -3;
+            renderers[i].gameObject.transform.localPosition = new Vector3(renderers[i].gameObject.transform.localPosition.x, renderers[i].gameObject.transform.localPosition.y, -3);
         }
     }
     public void fixWall(int i)
@@ -54,7 +54,7 @@ public class StoneShow : MonoBehaviour
         {
             float squareHeight = size.y / GenBoard.instance.getSize();
             renderers[i].gameObject.transform.localScale = new Vector2(size.x, squareHeight);
-            renderers[i].gameObject.transform.localPosition = Vector3.forward * 3;
+            renderers[i].gameObject.transform.localPosition = new Vector3(renderers[i].gameObject.transform.localPosition.x, renderers[i].gameObject.transform.localPosition.y, 3);
         }
     }
 }
