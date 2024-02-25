@@ -9,6 +9,8 @@ public class Stone : MonoBehaviour
 {
     public TileColor stoneColor = TileColor.None;
     public bool wall = false;
+    public bool cap = false;
+    public Sprite capSprite;
     public Tile currentTile = null;
     public PlayerStoneController playerStone;
 
@@ -29,8 +31,11 @@ public class Stone : MonoBehaviour
         if (sr == null)
             sr = GetComponent<SpriteRenderer>();
 
-
-        if (stoneColor == TileColor.White)
+        if(cap)
+        {
+            sr.color = playerStone.GetComponent<SpriteRenderer>().color;
+        }
+        else if (stoneColor == TileColor.White)
         {
             sr.color = Color.white;
         }
@@ -39,24 +44,25 @@ public class Stone : MonoBehaviour
             sr.color = Color.black;
         }
 
+        sr.sprite = cap ? capSprite : sr.sprite;
+
         col = GetComponent<BoxCollider2D>();
     }
 
     private void Update()
     {
+        if (wall && !cap)
+        {
+            transform.localScale = wallSize;
+        }
+        else
+        {
+            transform.localScale = setSize;
+        }
         if (!placed)
         {
             bool success;
             currentTile = GenBoard.instance.getTile(transform.position+Vector3.one/2, out success);
-
-            if(wall)
-            {
-                transform.localScale = wallSize;
-            }
-            else
-            {
-                transform.localScale = setSize;
-            }
 
             Vector3 tempPos = Input.mousePosition;
             tempPos.z = Camera.main.nearClipPlane;
@@ -104,12 +110,24 @@ public class Stone : MonoBehaviour
                     }
                     else
                     {
-                        Debug.LogWarning("attept to place stone on tile with stones");
-                        gameObject.SetActive(false);
-                        currentTile = null;
-                        transform.position = playerStone.transform.position;
-                        follow = true;
-                        playerStone.SetNext(playerStone.GetNext()-1);
+                        if (!cap)
+                        {
+                            Debug.LogWarning("attept to place stone on tile with stones");
+                            gameObject.SetActive(false);
+                            currentTile = null;
+                            transform.position = playerStone.transform.position;
+                            follow = true;
+                            playerStone.SetNext(playerStone.GetNext()-1);
+                        }
+                        else
+                        {
+                            Debug.LogWarning("attept to place stone on tile with stones");
+                            gameObject.SetActive(true);
+                            currentTile = null;
+                            transform.position = playerStone.transform.position + Vector3.up*5;
+                            follow = true;
+                            playerStone.SetNext(playerStone.GetNext() - 1);
+                        }
                     }
                 }
             }

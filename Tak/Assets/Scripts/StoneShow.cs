@@ -23,9 +23,9 @@ public class StoneShow : MonoBehaviour
 
     public void initRenderers()
     {
-        float squareHeight = size.y/GenBoard.instance.getSize();
+        float squareHeight = size.y/GenBoard.getSize();
 
-        for(int i = 0; i < GenBoard.instance.getSize(); i++)
+        for(int i = 0; i < GenBoard.getSize(); i++)
         {
             GameObject tempObj = new GameObject();
             tempObj.transform.parent = transform;
@@ -43,7 +43,7 @@ public class StoneShow : MonoBehaviour
     {
         if (i < renderers.Count)
         {
-            float squareHeight = size.y / GenBoard.instance.getSize();
+            float squareHeight = size.y / GenBoard.getSize();
             renderers[i].gameObject.transform.localScale = new Vector2(squareHeight, size.x);
             renderers[i].gameObject.transform.localPosition = new Vector3(renderers[i].gameObject.transform.localPosition.x, renderers[i].gameObject.transform.localPosition.y, -3);
         }
@@ -52,7 +52,7 @@ public class StoneShow : MonoBehaviour
     {
         if (i < renderers.Count)
         {
-            float squareHeight = size.y / GenBoard.instance.getSize();
+            float squareHeight = size.y / GenBoard.getSize();
             renderers[i].gameObject.transform.localScale = new Vector2(size.x, squareHeight);
             renderers[i].gameObject.transform.localPosition = new Vector3(renderers[i].gameObject.transform.localPosition.x, renderers[i].gameObject.transform.localPosition.y, 3);
         }

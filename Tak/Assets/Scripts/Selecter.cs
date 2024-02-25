@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -95,7 +96,10 @@ public class Selecter : MonoBehaviour
 
         if(success)
         {
-            MoveStonesToTile(newTile);
+            if(movingStones.Count + newTile.stonesOnTile.Count <= GenBoard.getSize())
+            {
+                MoveStonesToTile(newTile);
+            }
         }
 
         ShowStoneSet();
@@ -103,12 +107,26 @@ public class Selecter : MonoBehaviour
 
     private void MoveStonesToTile(Tile tile)
     {
-        foreach(Stone stone in movingStones)
+        foreach (Stone stone in movingStones)
         {
-            if(tile.stonesOnTile.Count > 0)
+            if (tile.stonesOnTile.Count > 0)
             {
-                if(!tile.stonesOnTile.Last().wall)
+                if (!stone.cap)
                 {
+                    if (!tile.stonesOnTile.Last().wall && !tile.stonesOnTile.Last().cap)
+                    {
+                        stone.currentTile.stonesOnTile.Remove(stone);
+                        stone.currentTile = tile;
+                        stone.transform.position = stone.currentTile.transform.position;
+                        stone.currentTile.stonesOnTile.Add(stone);
+
+                        transform.position = stone.currentTile.transform.position + (Vector3)offset;
+                        selectedTile = stone.currentTile;
+                    }
+                }
+                else if(!tile.stonesOnTile.Last().cap)
+                {
+                    tile.stonesOnTile.Last().wall = false;
                     stone.currentTile.stonesOnTile.Remove(stone);
                     stone.currentTile = tile;
                     stone.transform.position = stone.currentTile.transform.position;

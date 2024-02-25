@@ -119,5 +119,5 @@ public class GenBoard : MonoBehaviour
         }
     }
 
-    public float getSize() { return sizeOfBoard; }
+    public static float getSize() { return instance.sizeOfBoard; }
 }

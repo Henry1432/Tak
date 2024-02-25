@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public enum TileColor
@@ -26,9 +27,9 @@ public class Tile : MonoBehaviour
 
     private void Update()
     {
-        for(int i = 0; i < stonesOnTile.Count; i++)
+        for (int i = 0; i < stonesOnTile.Count; i++)
         {
-            stonesOnTile[i].transform.localPosition = new Vector3(stonesOnTile[i].transform.localPosition.x, stonesOnTile[i].transform.localPosition.y, -i);
+            stonesOnTile[i].transform.localPosition = new Vector3(stonesOnTile[i].transform.localPosition.x, stonesOnTile[i].transform.localPosition.y, -(i+1));
         }
     }
 
