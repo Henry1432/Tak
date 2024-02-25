@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -7,6 +8,7 @@ using UnityEngine.UIElements;
 
 public enum Direction
 {
+    None,
     Up,
     Down,
     Left,
@@ -23,6 +25,9 @@ public class Selecter : MonoBehaviour
     public TileColor moveColor = TileColor.White;
     public List<Stone> movingStones = new List<Stone>();
     private List<Stone> leaveStones = new List<Stone>();
+    private bool moving = false;
+    [SerializeField] private Direction moveDir = Direction.None;
+    [SerializeField] private int moveDist = 0;
 
     private SpriteRenderer sr;
     private bool highlight = true;
@@ -75,38 +80,63 @@ public class Selecter : MonoBehaviour
 
     public void MoveStones(Direction dir)
     {
-        Tile newTile = selectedTile;
-        bool success = false;
-        if (dir == Direction.Up)
+        if(moveDir ==  dir || moveDir == Direction.None)
         {
-            newTile = GenBoard.instance.getTile(selectedTile.transform.position + Vector3.up, out success);
-        }
-        else if (dir == Direction.Down)
-        {
-            newTile = GenBoard.instance.getTile(selectedTile.transform.position + Vector3.down, out success);
-        }
-        else if (dir == Direction.Right)
-        {
-            newTile = GenBoard.instance.getTile(selectedTile.transform.position + Vector3.right, out success);
-        }
-        else if (dir == Direction.Left)
-        {
-            newTile = GenBoard.instance.getTile(selectedTile.transform.position + Vector3.left, out success);
-        }
-
-        if(success)
-        {
-            if(movingStones.Count + newTile.stonesOnTile.Count <= GenBoard.getSize())
+            if(GameController.instance.currentTurn == movingStones.Last().stoneColor)
             {
-                MoveStonesToTile(newTile);
-            }
-        }
+                if(moveDir == Direction.None) 
+                {
+                    moveDir = dir;
+                }
+                if(moveDist > 0)
+                {
+                    leaveStones.Add(movingStones.First());
+                    movingStones.Remove(movingStones.First());
+                }
 
-        ShowStoneSet();
+                moving = true;
+                Tile newTile = selectedTile;
+                bool success = false;
+                if (dir == Direction.Up)
+                {
+                    newTile = GenBoard.instance.getTile(selectedTile.transform.position + Vector3.up, out success);
+                }
+                else if (dir == Direction.Down)
+                {
+                    newTile = GenBoard.instance.getTile(selectedTile.transform.position + Vector3.down, out success);
+                }
+                else if (dir == Direction.Right)
+                {
+                    newTile = GenBoard.instance.getTile(selectedTile.transform.position + Vector3.right, out success);
+                }
+                else if (dir == Direction.Left)
+                {
+                    newTile = GenBoard.instance.getTile(selectedTile.transform.position + Vector3.left, out success);
+                }
+
+                if(success)
+                {
+                    bool moved = false;
+                    //there is no limmit to stack height, just movable stones height, fix this later 
+                    if(movingStones.Count + newTile.stonesOnTile.Count <= GenBoard.getSize())
+                    {
+                        moved = MoveStonesToTile(newTile);
+                    }
+
+                    if(moved)
+                    {
+                        moveDist++;
+                    }
+                }
+            }
+
+            ShowStoneSet();
+        }
     }
 
-    private void MoveStonesToTile(Tile tile)
+    private bool MoveStonesToTile(Tile tile)
     {
+        bool moved = false;
         foreach (Stone stone in movingStones)
         {
             if (tile.stonesOnTile.Count > 0)
@@ -122,6 +152,7 @@ public class Selecter : MonoBehaviour
 
                         transform.position = stone.currentTile.transform.position + (Vector3)offset;
                         selectedTile = stone.currentTile;
+                        moved = true;
                     }
                 }
                 else if(!tile.stonesOnTile.Last().cap)
@@ -134,7 +165,10 @@ public class Selecter : MonoBehaviour
 
                     transform.position = stone.currentTile.transform.position + (Vector3)offset;
                     selectedTile = stone.currentTile;
+                    moved = true;
                 }
+                else
+                    moved = false;
             }
             else
             {
@@ -145,10 +179,12 @@ public class Selecter : MonoBehaviour
 
                 transform.position = stone.currentTile.transform.position + (Vector3)offset;
                 selectedTile = stone.currentTile;
+                moved = true;
             }
         }
         movingStones.Clear();
         leaveStones.Clear();
+        return moved;
     }
 
     private void SelectMoveCheck()
@@ -161,6 +197,13 @@ public class Selecter : MonoBehaviour
         {
             if (click)
             {
+                if (moving)
+                {
+                    GameController.swapTurn();
+                    moving = false;
+                    moveDir = Direction.None; 
+                    moveDist = 0;
+                }
                 highlight = false;
                 leaveStones.Clear();
                 movingStones.Clear();
@@ -181,6 +224,14 @@ public class Selecter : MonoBehaviour
             }
 
             selectedTile = clickTile;
+        }
+
+        if (moving && selectedTile == null)
+        {
+            GameController.swapTurn();
+            moving = false;
+            moveDir = Direction.None;
+            moveDist = 0;
         }
     }
 

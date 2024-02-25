@@ -13,9 +13,9 @@ public class Stone : MonoBehaviour
     public Sprite capSprite;
     public Tile currentTile = null;
     public PlayerStoneController playerStone;
+    public bool onTile = false;
+    public bool placed = false;
 
-    private bool onTile = false;
-    private bool placed = false;
     private Vector3 setSize = new Vector3(0.8f, 0.8f, 0.8f);
     private Vector3 wallSize = new Vector3(0.2f, 0.8f, 0.8f);
     private bool follow;
@@ -100,7 +100,8 @@ public class Stone : MonoBehaviour
             else if (success)
             {
                 if(!onTile) 
-                { 
+                {
+                    GameController.placeStone(); 
                     if (GenBoard.instance.board[(currentTile.boardPosition.x, currentTile.boardPosition.y)].stonesOnTile.Count == 0 || placed)
                     {
                         transform.position = new Vector3(currentTile.transform.position.x, currentTile.transform.position.y, transform.position.z);
