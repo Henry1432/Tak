@@ -86,7 +86,7 @@ public class Stone : MonoBehaviour
                 {
                     follow = false;
                 }
-                else if (Input.GetMouseButtonDown(1))
+                else if (Input.GetMouseButtonDown(1) && GameController.canWall())
                 {
                     wall = !wall;
                 }

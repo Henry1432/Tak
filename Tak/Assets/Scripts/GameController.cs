@@ -47,4 +47,9 @@ public class GameController : MonoBehaviour
         swapTurn();
         instance.firstPlaces++;
     }
+
+    public static bool canWall()
+    {
+        return (instance.firstPlaces > 1);
+    }
 }

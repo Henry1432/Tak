@@ -38,6 +38,12 @@ public class Selecter : MonoBehaviour
     }
     private void Update()
     {
+        while (movingStones.Count > GenBoard.getSize())
+        {
+            leaveStones.Add(movingStones.First());
+            movingStones.Remove(movingStones.First());
+        }
+
         SelectMoveCheck();
         ShowStoneSet();
 
@@ -117,8 +123,7 @@ public class Selecter : MonoBehaviour
                 if(success)
                 {
                     bool moved = false;
-                    //there is no limmit to stack height, just movable stones height, fix this later 
-                    if(movingStones.Count + newTile.stonesOnTile.Count <= GenBoard.getSize())
+                    if(movingStones.Count <= GenBoard.getSize())
                     {
                         moved = MoveStonesToTile(newTile);
                     }
@@ -237,6 +242,18 @@ public class Selecter : MonoBehaviour
 
     private void ShowStoneSet()
     {
+        StoneShow.instance.setBackdrop();
+        try
+        {
+            if(selectedTile.stonesOnTile.Count < GenBoard.getSize() * 2)
+            {
+                while(selectedTile.stonesOnTile.Count > StoneShow.instance.renderers.Count)
+                {
+                    StoneShow.instance.addRenderer();
+                }
+            }
+        }
+        catch { }
         for (int i = 0; i < StoneShow.instance.renderers.Count; i++)
         {
             StoneShow.instance.fixWall(i);
@@ -256,7 +273,15 @@ public class Selecter : MonoBehaviour
             {
                 if (i < StoneShow.instance.renderers.Count)
                 {
-                    StoneShow.instance.renderers[i].color = selectedTile.stonesOnTile[i].stoneColor == TileColor.White ? Color.white : Color.black;
+                    Color setColor = selectedTile.stonesOnTile[i].stoneColor == TileColor.White ? Color.white : Color.black;
+                    if(!movingStones.Contains(selectedTile.stonesOnTile[i]))
+                    {
+                        StoneShow.instance.renderers[i].color = new Color(setColor.r, setColor.g, setColor.b, 0.6f);
+                    }
+                    else
+                    {
+                        StoneShow.instance.renderers[i].color = setColor;
+                    }
                     if (selectedTile.stonesOnTile[i].wall)
                     {
                         StoneShow.instance.showWall(i);
