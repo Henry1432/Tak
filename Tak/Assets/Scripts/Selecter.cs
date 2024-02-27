@@ -161,6 +161,8 @@ public class Selecter : MonoBehaviour
 
     private bool MoveStonesToTile(Tile tile)
     {
+        List<Stone> oldStones = new List<Stone>(tile.stonesOnTile);
+        oldStones.AddRange(leaveStones);
         bool moved = false;
         foreach (Stone stone in movingStones)
         {
@@ -209,6 +211,7 @@ public class Selecter : MonoBehaviour
         }
         movingStones.Clear();
         leaveStones.Clear();
+        leaveStones.AddRange(oldStones);
         return moved;
     }
 
