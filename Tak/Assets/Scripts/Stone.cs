@@ -59,7 +59,7 @@ public class Stone : MonoBehaviour
         {
             transform.localScale = setSize;
         }
-        if (!placed)
+        if (!placed && (cap ? GameController.canWall() : true))
         {
             bool success;
             currentTile = GenBoard.instance.getTile(transform.position+Vector3.one/2, out success);

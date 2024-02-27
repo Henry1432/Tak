@@ -10,6 +10,7 @@ public class StoneShow : MonoBehaviour
     [SerializeField] private Color setBackColor;
     [SerializeField] private Vector2 size;
     [SerializeField] private Sprite square;
+    private float heightShow = -1;
 
     private void Start()
     {
@@ -39,45 +40,54 @@ public class StoneShow : MonoBehaviour
 
     public void initRenderers()
     {
-        float squareHeight = size.y/GenBoard.getSize();
+        if(heightShow == -1)
+        {
+            heightShow = size.y / GenBoard.getSize();
+        }
 
         for(int i = 0; i < GenBoard.getSize(); i++)
         {
             GameObject tempObj = new GameObject();
             tempObj.transform.parent = transform;
-            tempObj.transform.localPosition = (Vector3)(Vector2.up * squareHeight * i);
+            tempObj.transform.localPosition = (Vector3)(Vector2.up * heightShow * i);
             tempObj.name = i.ToString();
             tempObj.SetActive(false);
             SpriteRenderer tempSr = tempObj .AddComponent<SpriteRenderer>();
             tempSr.sprite = square;
-            tempObj.transform.localScale = new Vector2 (size.x, squareHeight );
+            tempObj.transform.localScale = new Vector2 (size.x, heightShow);
             renderers.Add(tempSr);
         }
     }
     
     public void addRenderer()
     {
-        float squareHeight = size.y / GenBoard.getSize();
+        if (heightShow == -1)
+        {
+            heightShow = size.y / GenBoard.getSize();
+        }
         GameObject tempObj = new GameObject();
         tempObj.transform.parent = transform;
-        tempObj.transform.localPosition = (Vector3)(Vector2.up * squareHeight * renderers.Count);
+        tempObj.transform.localPosition = (Vector3)(Vector2.up * heightShow * renderers.Count);
         tempObj.name = renderers.Count.ToString();
         tempObj.SetActive(false);
         SpriteRenderer tempSr = tempObj.AddComponent<SpriteRenderer>();
         tempSr.sprite = square;
-        tempObj.transform.localScale = new Vector2(size.x, squareHeight);
+        tempObj.transform.localScale = new Vector2(size.x, heightShow);
         renderers.Add(tempSr);
 
-        transform.position = transform.position + (Vector3.down * squareHeight) * 0.5f;
-        size.y += squareHeight;
+        transform.position = transform.position + (Vector3.down * heightShow) * 0.5f;
+        size.y += heightShow;
     }
 
     public void showWall(int i)
     {
         if (i < renderers.Count)
         {
-            float squareHeight = size.y / GenBoard.getSize();
-            renderers[i].gameObject.transform.localScale = new Vector2(squareHeight, size.x);
+            if (heightShow == -1)
+            {
+                heightShow = size.y / GenBoard.getSize();
+            }
+            renderers[i].gameObject.transform.localScale = new Vector2(heightShow, size.x);
             renderers[i].gameObject.transform.localPosition = new Vector3(renderers[i].gameObject.transform.localPosition.x, renderers[i].gameObject.transform.localPosition.y, -3);
         }
     }
@@ -85,16 +95,18 @@ public class StoneShow : MonoBehaviour
     {
         if (i < renderers.Count)
         {
-            float squareHeight = size.y / GenBoard.getSize();
-            renderers[i].gameObject.transform.localScale = new Vector2(size.x, squareHeight);
+            if (heightShow == -1)
+            {
+                heightShow = size.y / GenBoard.getSize();
+            }
+            renderers[i].gameObject.transform.localScale = new Vector2(size.x, heightShow);
             renderers[i].gameObject.transform.localPosition = new Vector3(renderers[i].gameObject.transform.localPosition.x, renderers[i].gameObject.transform.localPosition.y, 3);
         }
     }
 
     public static Vector2 getSize()
     {
-        float squareHeight = instance.size.y / GenBoard.getSize();
-        return new Vector2(squareHeight, instance.size.x);
+        return new Vector2(instance.heightShow, instance.size.x);
     }
 
     public void setBackdrop()

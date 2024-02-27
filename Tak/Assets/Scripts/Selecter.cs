@@ -30,7 +30,8 @@ public class Selecter : MonoBehaviour
     [SerializeField] private int moveDist = 0;
 
     private SpriteRenderer sr;
-    private bool highlight = true;
+    private bool highlight = true; 
+    bool move = false;
 
     private void Start()
     {
@@ -44,10 +45,10 @@ public class Selecter : MonoBehaviour
             movingStones.Remove(movingStones.First());
         }
 
-        SelectMoveCheck();
         ShowStoneSet();
+        SelectMoveCheck(move);
 
-        if(selectedTile != null && !highlight)
+        if (selectedTile != null && !highlight)
         {
             foreach (Stone stone in selectedTile.stonesOnTile) 
             { 
@@ -62,29 +63,45 @@ public class Selecter : MonoBehaviour
                 leaveStones.Add(movingStones.First());
                 movingStones.Remove(movingStones.First());
             }
-            if(movingStones.Count > 0)
+            if(movingStones.Count > 0 && GameController.canWall())
             {
                 if(Input.GetKeyDown(KeyCode.UpArrow))
                 {
-                    MoveStones(Direction.Up);
+                    bool save = MoveStones(Direction.Up);
+                    if(save)
+                    {
+                        move = save;
+                    }
                 }
                 else if (Input.GetKeyDown(KeyCode.DownArrow))
                 {
-                    MoveStones(Direction.Down);
+                    bool save = MoveStones(Direction.Down);
+                    if (save)
+                    {
+                        move = save;
+                    }
                 }
                 else if (Input.GetKeyDown(KeyCode.RightArrow))
                 {
-                    MoveStones(Direction.Right);
+                    bool save = MoveStones(Direction.Right);
+                    if (save)
+                    {
+                        move = save;
+                    }
                 }
                 else if (Input.GetKeyDown(KeyCode.LeftArrow))
                 {
-                    MoveStones(Direction.Left);
+                    bool save = MoveStones(Direction.Left);
+                    if (save)
+                    {
+                        move = save;
+                    }
                 }
             }
         }
     }
 
-    public void MoveStones(Direction dir)
+    public bool MoveStones(Direction dir)
     {
         if(moveDir ==  dir || moveDir == Direction.None)
         {
@@ -131,12 +148,15 @@ public class Selecter : MonoBehaviour
                     if(moved)
                     {
                         moveDist++;
+                        ShowStoneSet();
+                        return true;
                     }
                 }
             }
-
-            ShowStoneSet();
         }
+
+        ShowStoneSet();
+        return false;
     }
 
     private bool MoveStonesToTile(Tile tile)
@@ -192,7 +212,7 @@ public class Selecter : MonoBehaviour
         return moved;
     }
 
-    private void SelectMoveCheck()
+    private void SelectMoveCheck(bool moveSuccess)
     {
         Vector3 tempPos = Input.mousePosition;
         tempPos.z = Camera.main.nearClipPlane;
@@ -202,10 +222,11 @@ public class Selecter : MonoBehaviour
         {
             if (click)
             {
-                if (moving)
+                if (moving && moveSuccess)
                 {
                     GameController.swapTurn();
                     moving = false;
+                    move = false;
                     moveDir = Direction.None; 
                     moveDist = 0;
                 }

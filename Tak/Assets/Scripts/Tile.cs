@@ -42,7 +42,7 @@ public class Tile : MonoBehaviour
 
         if (tileColor == TileColor.White)
         {
-            sr.color = new Color32(255, 220, 170, 255);
+            sr.color = new Color32(255, 196, 94, 255);
         }
         else if (tileColor == TileColor.Black)
         {
