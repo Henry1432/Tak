@@ -312,8 +312,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 48
+  m_fontSizeBase: 48
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -397,10 +397,10 @@ RectTransform:
   - {fileID: 198654416}
   m_Father: {fileID: 1153876596}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 399, y: 202.2}
-  m_SizeDelta: {x: 137.7507, y: 25.828}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -177.09668, y: -38.580566}
+  m_SizeDelta: {x: 335.9441, y: 62.9889}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &228231519
 MonoBehaviour:
@@ -639,7 +639,7 @@ Transform:
   m_GameObject: {fileID: 374292429}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 9.27, y: -3.42, z: 0}
+  m_LocalPosition: {x: 7.58, y: -3.42, z: 0}
   m_LocalScale: {x: 2.3895, y: 2.3895, z: 2.3895}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -773,8 +773,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 219.84302, y: -33}
-  m_SizeDelta: {x: 191.686, y: 30}
+  m_AnchoredPosition: {x: 486, y: -123}
+  m_SizeDelta: {x: 399.6305, y: 62.5446}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &582697267
 MonoBehaviour:
@@ -1126,8 +1126,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -215.8, y: -33}
-  m_SizeDelta: {x: 191.686, y: 30}
+  m_AnchoredPosition: {x: -486, y: -135}
+  m_SizeDelta: {x: 404.61, y: 63.3235}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &969019442
 MonoBehaviour:
@@ -1354,7 +1354,7 @@ Transform:
   m_GameObject: {fileID: 1084774179}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -9.46, y: -3.42, z: 0}
+  m_LocalPosition: {x: -7.46, y: -3.42, z: 0}
   m_LocalScale: {x: 2.3895, y: 2.3895, z: 2.3895}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1883,8 +1883,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 42
+  m_fontSizeBase: 42
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 0
@@ -2017,8 +2017,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 42
+  m_fontSizeBase: 42
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 0
