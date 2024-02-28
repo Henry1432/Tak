@@ -9,7 +9,7 @@ public class PlayerStoneController : MonoBehaviour
     public Sprite stoneSprite;
     private CircleCollider2D col;
 
-    [SerializeField] private int nextTile = 0;
+    [SerializeField] private int nextStone = 0;
 
     private void Start()
     {
@@ -21,7 +21,7 @@ public class PlayerStoneController : MonoBehaviour
     {
         if (GameController.instance.placeColor == playerColor)
         {
-            if (Input.GetMouseButtonDown(0) && nextTile < GenBoard.instance.maxTiles)
+            if (Input.GetMouseButtonDown(0) && nextStone < GenBoard.instance.maxTiles)
             {
                 Vector3 mousePos = Input.mousePosition;
                 mousePos.z = Camera.main.nearClipPlane;
@@ -29,12 +29,22 @@ public class PlayerStoneController : MonoBehaviour
 
                 if(Vector3.Distance(col.ClosestPoint(worldPos), worldPos) == 0)
                 {
-                    stones[nextTile].gameObject.SetActive(true);
-                    stones[nextTile].transform.position = worldPos;
-                    nextTile = nextTile >= stones.Count ? stones.Count-1 : nextTile + 1;
+                    stones[nextStone].gameObject.SetActive(true);
+                    stones[nextStone].transform.position = worldPos;
+                    nextStone = nextStone >= stones.Count ? stones.Count-1 : nextStone + 1;
                 }
             }
         }
+    }
+
+    public Stone PlaceNextStone(Vector2 pos)
+    {
+        stones[nextStone].gameObject.SetActive(true);
+        stones[nextStone].transform.position = pos;
+        int returnNext = nextStone;
+        nextStone = nextStone >= stones.Count ? stones.Count - 1 : nextStone + 1;
+
+        return stones[returnNext];
     }
 
     public void stoneReset()
@@ -62,6 +72,6 @@ public class PlayerStoneController : MonoBehaviour
         }
     }
 
-    public int GetNext() { return nextTile; }
-    public void SetNext(int next) {  nextTile = next; }
+    public int GetNext() { return nextStone; }
+    public void SetNext(int next) {  nextStone = next; }
 }

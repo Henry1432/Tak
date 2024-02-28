@@ -14,11 +14,12 @@ public class Stone : MonoBehaviour
     public Tile currentTile = null;
     public PlayerStoneController playerStone;
     public bool onTile = false;
-    public bool placed = false;
+    public bool placed = false; 
+    public bool follow;
 
     private Vector3 setSize = new Vector3(0.8f, 0.8f, 0.8f);
     private Vector3 wallSize = new Vector3(0.2f, 0.8f, 0.8f);
-    private bool follow;
+    
     private Vector3 mouseOffset = Vector3.negativeInfinity;
     private Vector2 mousePos = Vector3.negativeInfinity;
     private SpriteRenderer sr;
@@ -132,6 +133,11 @@ public class Stone : MonoBehaviour
                     }
                 }
             }
+        }
+
+        if(placed)
+        {
+            transform.position = new Vector3(currentTile.transform.position.x, currentTile.transform.position.y, transform.position.z);
         }
     }
 

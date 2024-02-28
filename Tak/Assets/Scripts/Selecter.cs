@@ -24,7 +24,7 @@ public class Selecter : MonoBehaviour
 
     public TileColor moveColor = TileColor.White;
     public List<Stone> movingStones = new List<Stone>();
-    private List<Stone> leaveStones = new List<Stone>();
+    public List<Stone> leaveStones = new List<Stone>();
     private bool moving = false;
     [SerializeField] private Direction moveDir = Direction.None;
     [SerializeField] private int moveDist = 0;
@@ -227,11 +227,7 @@ public class Selecter : MonoBehaviour
             {
                 if (moving && moveSuccess)
                 {
-                    GameController.swapTurn();
-                    moving = false;
-                    move = false;
-                    moveDir = Direction.None; 
-                    moveDist = 0;
+                    EndTurn();
                 }
                 highlight = false;
                 leaveStones.Clear();
@@ -243,7 +239,7 @@ public class Selecter : MonoBehaviour
 
             if (success)
             {
-                transform.position = clickTile.transform.position + (Vector3)offset;
+                transform.position = clickTile.transform.position + offset;
                 sr.sprite = ring;
             }
             else
@@ -257,11 +253,17 @@ public class Selecter : MonoBehaviour
 
         if (moving && selectedTile == null)
         {
-            GameController.swapTurn();
-            moving = false;
-            moveDir = Direction.None;
-            moveDist = 0;
+            EndTurn();
         }
+    }
+
+    public void EndTurn()
+    {
+        GameController.swapTurn();
+        moving = false;
+        move = false;
+        moveDir = Direction.None;
+        moveDist = 0;
     }
 
     private void ShowStoneSet()
