@@ -42,11 +42,11 @@ public class Tile : MonoBehaviour
 
         if (tileColor == TileColor.White)
         {
-            sr.color = new Color32(255, 196, 94, 255);
+            sr.color = new Color32(255, 209, 163, 255);
         }
         else if (tileColor == TileColor.Black)
         {
-            sr.color = new Color32(115, 40, 5, 255);
+            sr.color = new Color32(97, 47, 0, 255);
         }
 
         transform.position = this.boardOrigin + (Vector3)this.boardPosition;
