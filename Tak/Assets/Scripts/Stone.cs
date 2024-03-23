@@ -25,119 +25,158 @@ public class Stone : MonoBehaviour
     private SpriteRenderer sr;
     private BoxCollider2D col;
 
+    private bool tempStone = false;
+
     private void Start()
     {
-        transform.localScale = Vector3.one * 0.8f;
-
-        if (sr == null)
-            sr = GetComponent<SpriteRenderer>();
-
-        if(cap)
+        if (!tempStone)
         {
-            sr.color = playerStone.GetComponent<SpriteRenderer>().color;
-        }
-        else if (stoneColor == TileColor.White)
-        {
-            sr.color = Color.white;
-        }
-        else if (stoneColor == TileColor.Black)
-        {
-            sr.color = Color.black;
-        }
+            transform.localScale = Vector3.one * 0.8f;
 
-        sr.sprite = cap ? capSprite : sr.sprite;
+            if (sr == null)
+                sr = GetComponent<SpriteRenderer>();
 
-        col = GetComponent<BoxCollider2D>();
+            if(cap)
+            {
+                sr.color = playerStone.GetComponent<SpriteRenderer>().color;
+            }
+            else if (stoneColor == TileColor.White)
+            {
+                sr.color = Color.white;
+            }
+            else if (stoneColor == TileColor.Black)
+            {
+                sr.color = Color.black;
+            }
+
+            sr.sprite = cap ? capSprite : sr.sprite;
+
+            col = GetComponent<BoxCollider2D>();
+        }
     }
 
     private void Update()
     {
-        if (wall && !cap)
+        if(!tempStone)
         {
-            transform.localScale = wallSize;
-        }
-        else
-        {
-            transform.localScale = setSize;
-        }
-        if (!placed && (cap ? GameController.canWall() : true))
-        {
-            bool success;
-            currentTile = GenBoard.instance.getTile(transform.position+Vector3.one/2, out success);
 
-            Vector3 tempPos = Input.mousePosition;
-            tempPos.z = Camera.main.nearClipPlane;
-            mousePos = Camera.main.ScreenToWorldPoint(tempPos);
-
-            if (Vector3.Distance(col.ClosestPoint(mousePos), mousePos) == 0)
+            if (wall && !cap)
             {
-                if (Input.GetMouseButtonDown(0))
-                {
-                    follow = true;
-                    mouseOffset = (Vector2)transform.position - mousePos;
-                    mouseOffset.z = transform.position.z;
-
-                    if (onTile)
-                    {
-                        currentTile.stonesOnTile.Remove(this);
-                        onTile = false;
-                    }
-                }
-                else if (Input.GetMouseButtonUp(0))
-                {
-                    follow = false;
-                }
-                else if (Input.GetMouseButtonDown(1) && GameController.canWall())
-                {
-                    wall = !wall;
-                }
+                transform.localScale = wallSize;
             }
-
-
-            if (follow)
+            else
             {
-                transform.position = (Vector3)mousePos + mouseOffset;
+                transform.localScale = setSize;
             }
-            else if (success)
+            if (!placed && (cap ? GameController.canWall() : true))
             {
-                if(!onTile) 
+                bool success;
+                currentTile = GenBoard.instance.getTile(transform.position+Vector3.one/2, out success);
+
+                Vector3 tempPos = Input.mousePosition;
+                tempPos.z = Camera.main.nearClipPlane;
+                mousePos = Camera.main.ScreenToWorldPoint(tempPos);
+
+                if (Vector3.Distance(col.ClosestPoint(mousePos), mousePos) == 0)
                 {
-                    GameController.placeStone(); 
-                    if (GenBoard.instance.board[(currentTile.boardPosition.x, currentTile.boardPosition.y)].stonesOnTile.Count == 0 || placed)
+                    if (Input.GetMouseButtonDown(0))
                     {
-                        transform.position = new Vector3(currentTile.transform.position.x, currentTile.transform.position.y, transform.position.z);
-                        GenBoard.instance.board[(currentTile.boardPosition.x, currentTile.boardPosition.y)].stonesOnTile.Add(this);
-                        onTile = true;
-                        placed = true;
-                    }
-                    else
-                    {
-                        if (!cap)
+                        follow = true;
+                        mouseOffset = (Vector2)transform.position - mousePos;
+                        mouseOffset.z = transform.position.z;
+
+                        if (onTile)
                         {
-                            Debug.LogWarning("attept to place stone on tile with stones");
-                            gameObject.SetActive(false);
-                            currentTile = null;
-                            transform.position = playerStone.transform.position;
-                            follow = true;
-                            playerStone.SetNext(playerStone.GetNext()-1);
+                            currentTile.stonesOnTile.Remove(this);
+                            onTile = false;
+                        }
+                    }
+                    else if (Input.GetMouseButtonUp(0))
+                    {
+                        follow = false;
+                    }
+                    else if (Input.GetMouseButtonDown(1) && GameController.canWall())
+                    {
+                        wall = !wall;
+                    }
+                }
+
+
+                if (follow)
+                {
+                    transform.position = (Vector3)mousePos + mouseOffset;
+                }
+                else if (success)
+                {
+                    if(!onTile) 
+                    {
+                        GameController.placeStone(); 
+                        if (GenBoard.instance.board[(currentTile.boardPosition.x, currentTile.boardPosition.y)].stonesOnTile.Count == 0 || placed)
+                        {
+                            transform.position = new Vector3(currentTile.transform.position.x, currentTile.transform.position.y, transform.position.z);
+                            GenBoard.instance.board[(currentTile.boardPosition.x, currentTile.boardPosition.y)].stonesOnTile.Add(this);
+                            onTile = true;
+                            placed = true;
                         }
                         else
                         {
-                            Debug.LogWarning("attept to place stone on tile with stones");
-                            gameObject.SetActive(true);
-                            currentTile = null;
-                            transform.position = playerStone.transform.position + Vector3.up*5;
-                            follow = true;
-                            playerStone.SetNext(playerStone.GetNext() - 1);
+                            if (!cap)
+                            {
+                                Debug.LogWarning("attept to place stone on tile with stones");
+                                gameObject.SetActive(false);
+                                currentTile = null;
+                                transform.position = playerStone.transform.position;
+                                follow = true;
+                                playerStone.SetNext(playerStone.GetNext()-1);
+                            }
+                            else
+                            {
+                                Debug.LogWarning("attept to place stone on tile with stones");
+                                gameObject.SetActive(true);
+                                currentTile = null;
+                                transform.position = playerStone.transform.position + Vector3.up*5;
+                                follow = true;
+                                playerStone.SetNext(playerStone.GetNext() - 1);
+                            }
                         }
                     }
                 }
             }
-        }
 
-        if(placed)
+            if(placed)
+            {
+                transform.position = new Vector3(currentTile.transform.position.x, currentTile.transform.position.y, transform.position.z);
+            }
+        }
+    }
+
+    public static Stone getTempStone(TileColor color, bool wall, bool cap, Tile current)
+    {
+        GameObject stoneObj = new GameObject();
+        stoneObj.name = "tempStone";
+        Stone stone = stoneObj.AddComponent<Stone>();
+        stone.col = stoneObj.AddComponent<BoxCollider2D>();
+        stone.sr = stoneObj.GetComponent<SpriteRenderer>();
+        stone.col.enabled = false;
+        stone.sr.enabled = false;
+        stone.stoneColor = color;
+        stone.wall = wall;
+        stone.cap = cap;
+        stone.currentTile = current;
+        stone.onTile = true;
+        stone.placed = true;
+        stone.follow = false;
+        stone.tempStone = true;
+
+        return stone;
+}
+
+    public bool isTemp() { return tempStone; }
+    public void DeleteTemp()
+    {
+        if(tempStone)
         {
-            transform.position = new Vector3(currentTile.transform.position.x, currentTile.transform.position.y, transform.position.z);
+            Destroy(gameObject);
         }
     }
 

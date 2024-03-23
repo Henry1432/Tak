@@ -6,13 +6,24 @@ using UnityEngine;
 using UnityEngine.AI;
 using static UnityEngine.GraphicsBuffer;
 
-public struct BoardTile
+public class BoardTile
 {
     public TileColor owner;
     public float control; //who has control of the tile, 0 means total and opressive control by black, 1 means total and opressive control by white
     public int range; //distance this tile can cover
     public bool road; //if the tile is acting as a road
-    public List<Stone> stonesOnTile;
+    public List<Stone> stonesOnTile = new List<Stone>();
+
+    ~BoardTile()
+    {
+        for(int i = stonesOnTile.Count - 1; i >= 0; i--)
+        {
+            if (stonesOnTile[i].isTemp())
+            {
+                stonesOnTile[i].DeleteTemp();
+            }
+        }
+    }
 }
 
 public class Board
@@ -24,7 +35,22 @@ public class Board
     public TileColor advantage; //who the proximity is for,
             //if white is close to a win prox would be 2 and advantage would be white.
             //if black and white are both 3 away from win prox would be avarage of both(3) and advantage would be none.
-
+    public Board()
+    {
+        board = new Dictionary<(int, int), BoardTile>();
+        coverage = 0;
+        totalControl = 0;
+        proximity = 0;
+        advantage = TileColor.None;
+    }
+    public Board(Board copy)
+    {
+        board = new Dictionary<(int, int), BoardTile>(copy.board);
+        coverage = copy.coverage;
+        totalControl = copy.totalControl;
+        proximity = copy.proximity;
+        advantage = copy.advantage;
+    }
 
 
     //public float score;
@@ -32,14 +58,13 @@ public class Board
     //assumes move is valid
     public static Board getNewBoard(Board baseBoard, Moves move)
     {
-        Board newBoard = baseBoard;
+        Board newBoard = new Board(baseBoard);
 
         editBoard(newBoard, move);
 
         return newBoard;
     }
 
-    //finish moveTile as if the settinng works. setting currently does not work, try creaing a new dictionary entry and deleting the last
     private static void editBoard(Board target, Moves move)
     {
         if (move.isPlaceStone())
@@ -49,27 +74,48 @@ public class Board
             if (move.isWall())
             {
                 if (boardTile.owner == TileColor.White)
+                {
                     boardTile.control = getTileControl(1, 0, true, false, boardTile.owner, out boardTile.road);
+                }
                 else
+                {
                     boardTile.control = getTileControl(0, 1, true, false, boardTile.owner, out boardTile.road);
+                }
             }
             else if(move.isCapstone())
             {
                 if (boardTile.owner == TileColor.White)
+                {
                     boardTile.control = getTileControl(1, 0, false, true, boardTile.owner, out boardTile.road);
+                }
                 else
+                {
                     boardTile.control = getTileControl(0, 1, false, true, boardTile.owner, out boardTile.road);
+                }
             }
             else
             {
                 if (boardTile.owner == TileColor.White)
+                {
                     boardTile.control = getTileControl(1, 0, false, false, boardTile.owner, out boardTile.road);
+                }
                 else
+                {
                     boardTile.control = getTileControl(0, 1, false, false, boardTile.owner, out boardTile.road);
+                }
             }
             boardTile.range = 1;
 
-            target.board[((int)move.getOriginX(), (int)move.getOriginY())] = boardTile;
+            bool success; 
+            Tile tile = GenBoard.instance.board[((float)move.getOriginX(), (float)move.getOriginY())];
+            Stone stone = Stone.getTempStone(boardTile.owner, move.isWall(), move.isCapstone(), tile);
+            if(stone != null)
+            {
+                boardTile.stonesOnTile.Add(stone);
+            }
+
+            target.board.Remove(((int)move.getOriginX(), (int)move.getOriginY()));
+            target.board.Add(((int)move.getOriginX(), (int)move.getOriginY()), boardTile);
         }
         else
         {
@@ -85,35 +131,126 @@ public class Board
                 if(movingTiles.Count > 0)
                 {
                     BoardTile thisTile = new BoardTile(), nextTile = new BoardTile();
-                    thisTile.stonesOnTile = abandonedTiles;
-                    nextTile.stonesOnTile = movingTiles;
-                    abandonedTiles.Clear();
-                    abandonedTiles.Add(movingTiles.First());
-                    movingTiles.Remove(movingTiles.First());
-
-                    thisTile.owner = thisTile.stonesOnTile.Last().stoneColor;
-                    thisTile.control = getTileControl(thisTile.stonesOnTile, out thisTile.road);
-                    thisTile.range = thisTile.stonesOnTile.Count;
-
-                    nextTile.owner = nextTile.stonesOnTile.Last().stoneColor;
-                    nextTile.control = getTileControl(nextTile.stonesOnTile, out nextTile.road);
-                    nextTile.range = nextTile.stonesOnTile.Count;
-
-                    if(move.getDirection() == 'u')
+                    if(abandonedTiles.Count > 0)
+                        thisTile.stonesOnTile.AddRange(abandonedTiles);
+                    if(movingTiles.Count > 0)
                     {
+                        nextTile.stonesOnTile.AddRange(movingTiles);
+
+                        abandonedTiles.Add(movingTiles.First());
+                        movingTiles.Remove(movingTiles.First());
+                    }
+
+                    if(thisTile.stonesOnTile.Count > 0)
+                    {
+                        thisTile.owner = thisTile.stonesOnTile.Last().stoneColor;
+                        thisTile.control = getTileControl(thisTile.stonesOnTile, out thisTile.road);
+                    }
+                    else
+                    {
+                        thisTile.owner = TileColor.None;
+                        thisTile.control = 0.5f;
+                    }
+
+                    if (nextTile.stonesOnTile.Count > 0)
+                    {
+                        nextTile.owner = nextTile.stonesOnTile.Last().stoneColor;
+                        nextTile.control = getTileControl(nextTile.stonesOnTile, out nextTile.road);
+                    }
+                    else
+                    {
+                        nextTile.owner = TileColor.None;
+                        nextTile.control = 0.5f;
+                    }
+
+                    if (move.getDirection() == 'u')
+                    {
+                        yDist += 1;
+                        try
+                        {
+                            thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist - 1)].stonesOnTile);
+                        }
+                        catch { }
+                        try 
+                        {
+                            nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
+                        }
+                        catch{}
+
+                        thisTile.range = thisTile.stonesOnTile.Count;
+                        nextTile.range = nextTile.stonesOnTile.Count;
+
+                        target.board.Remove((move.getOriginX() + xDist, move.getOriginY() + yDist - 1));
+                        target.board.Add((move.getOriginX() + xDist, move.getOriginY() + yDist - 1), thisTile);
+                        target.board.Remove((move.getOriginX() + xDist, move.getOriginY() + yDist));
+                        target.board.Add((move.getOriginX() + xDist, move.getOriginY() + yDist), nextTile);
 
                     }
                     else if(move.getDirection() == 'r')
                     {
+                        xDist += 1;
+                        try 
+                        {
+                            thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist - 1, move.getOriginY() + yDist)].stonesOnTile);
+                        }
+                        catch{}
+                        try 
+                        {
+                            nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
+                        }
+                        catch{}
 
+                        thisTile.range = thisTile.stonesOnTile.Count;
+                        nextTile.range = nextTile.stonesOnTile.Count;
+
+                        target.board.Remove((move.getOriginX() + xDist - 1, move.getOriginY() + yDist));
+                        target.board.Add((move.getOriginX() + xDist - 1, move.getOriginY() + yDist), thisTile);
+                        target.board.Remove((move.getOriginX() + xDist, move.getOriginY() + yDist));
+                        target.board.Add((move.getOriginX() + xDist, move.getOriginY() + yDist), nextTile);
                     }
                     else if (move.getDirection() == 'd')
                     {
+                        yDist -= 1;
+                        try 
+                        {
+                            thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist + 1)].stonesOnTile);
+                        }
+                        catch{}
+                        try 
+                        {                        
+                            nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
+                        }
+                        catch{}
 
+                        thisTile.range = thisTile.stonesOnTile.Count;
+                        nextTile.range = nextTile.stonesOnTile.Count;
+
+                        target.board.Remove((move.getOriginX() + xDist, move.getOriginY() + yDist + 1));
+                        target.board.Add((move.getOriginX() + xDist, move.getOriginY() + yDist + 1), thisTile);
+                        target.board.Remove((move.getOriginX() + xDist, move.getOriginY() + yDist));
+                        target.board.Add((move.getOriginX() + xDist, move.getOriginY() + yDist), nextTile);
                     }
                     else
                     {
+                        xDist -= 1;
+                        try
+                        {
+                            thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist + 1, move.getOriginY() + yDist)].stonesOnTile);
+                        }
+                        catch{}
+                        try 
+                        {
+                            nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
+                        }
+                        catch{}
 
+                        thisTile.range = thisTile.stonesOnTile.Count;
+                        nextTile.range = nextTile.stonesOnTile.Count;
+
+                        target.board.Remove((move.getOriginX() + xDist + 1, move.getOriginY() + yDist));
+                        target.board.Add((move.getOriginX() + xDist + 1, move.getOriginY() + yDist), thisTile);
+                        target.board.Remove((move.getOriginX() + xDist, move.getOriginY() + yDist));
+                        target.board.Add((move.getOriginX() + xDist, move.getOriginY() + yDist), nextTile);
                     }
                 }
             }

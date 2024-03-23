@@ -68,6 +68,13 @@ public class Agent : MonoBehaviour
             
             Board tempBoard = Board.getNewBoard(TestBoard, moves[moveIndex]);
 
+            if (tempBoard == TestBoard)
+            {
+                Debug.Log("fail");
+            }
+            else
+                Debug.Log("sUcc");
+
             Debug.Log(DateTime.Now - save);
         }
 

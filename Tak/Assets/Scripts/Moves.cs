@@ -57,11 +57,11 @@ public class Moves
 
     public TileColor getPlaceStoneColor() 
     { 
-        if(placeStone == 'w' && placeStone == 'W')
+        if(placeStone == 'w' || placeStone == 'W')
         {
             return TileColor.White;
         }
-        else if (placeStone == 'b' && placeStone == 'B')
+        else if (placeStone == 'b' || placeStone == 'B')
         {
             return TileColor.Black;
         }
