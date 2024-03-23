@@ -56,4 +56,32 @@ public class Tile : MonoBehaviour
     {
         sr.sprite = sprite;
     }
+
+    public int getWhiteStonesOnTile()
+    {
+        int whiteStonesOnTile = 0;
+        foreach(Stone stone in stonesOnTile)
+        {
+            if(stone.stoneColor == TileColor.White)
+            {
+                whiteStonesOnTile++;
+            }
+        }
+
+        return whiteStonesOnTile;
+    }
+
+    public int getBlackStonesOnTile()
+    {
+        int blackStonesOnTile = 0;
+        foreach (Stone stone in stonesOnTile)
+        {
+            if (stone.stoneColor == TileColor.Black)
+            {
+                blackStonesOnTile++;
+            }
+        }
+
+        return blackStonesOnTile;
+    }
 }

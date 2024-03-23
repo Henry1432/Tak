@@ -16,6 +16,9 @@ public class Agent : MonoBehaviour
     [SerializeField] private PlayerStoneController epsc;
     [SerializeField] private bool check = false;
 
+    public Board TestBoard;
+    public bool test;
+
     private void Start()
     {
         foreach (GameObject obj in GameObject.FindGameObjectsWithTag("Capstone"))
@@ -48,6 +51,26 @@ public class Agent : MonoBehaviour
 
     private void Update()
     {
+        if(test)
+        {
+            test = false;
+            TestBoard = new Board();
+            DateTime save = DateTime.Now;
+            Board.getCurrentBoard(TestBoard);
+
+            moves.Clear();
+
+            //System.DateTime timeTest = System.DateTime.Now;
+
+            moves = getMoves();
+
+            int moveIndex = UnityEngine.Random.Range(0, moves.Count - 1);
+            
+            Board tempBoard = Board.getNewBoard(TestBoard, moves[moveIndex]);
+
+            Debug.Log(DateTime.Now - save);
+        }
+
         if (check && (agentColor == GameController.instance.currentTurn))
         {
             moves.Clear();
@@ -137,9 +160,14 @@ public class Agent : MonoBehaviour
 
                                 selecter.transform.position = activeTile.transform.position + selecter.offset;
                                 selecter.selectedTile = activeTile;
-
+                                int abandonCount = moves[moveIndex].getAbandon();
                                 foreach (Stone stone in selecter.selectedTile.stonesOnTile)
                                 {
+                                    if(abandonCount > 0)
+                                    {
+                                        selecter.leaveStones.Add(stone);
+                                        abandonCount--;
+                                    }
                                     if (!selecter.leaveStones.Contains(stone) && !selecter.movingStones.Contains(stone))
                                     {
                                         selecter.movingStones.Add(stone);
@@ -246,50 +274,57 @@ public class Agent : MonoBehaviour
                 {
                     for(short i = 1;  i <= tile.stonesOnTile.Count; i++)
                     {
-                        Moves moveStone = new Moves(tile.boardPosition , dir, i);
-                        if(dir == 'u')
+                        for(short a = 0; a < tile.stonesOnTile.Count; a++)
                         {
-                            try
+                            Moves moveStone = new Moves(tile.boardPosition , dir, i, a);
+                            if(dir == 'u')
                             {
-                                if (GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y + 1)])
+                                try
                                 {
-                                    moves.Add(moveStone);
+                                    if (GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y + 1)])
+                                    {
+                                        if(!GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y + 1)].stonesOnTile.Last().cap && !GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y + 1)].stonesOnTile.Last().wall)
+                                            moves.Add(moveStone);
+                                    }
                                 }
+                                catch { }
                             }
-                            catch { }
-                        }
-                        else if (dir == 'r')
-                        {
-                            try
+                            else if (dir == 'r')
                             {
-                                if (GenBoard.instance.board[(tile.boardPosition.x + 1, tile.boardPosition.y)])
+                                try
                                 {
-                                    moves.Add(moveStone);
+                                    if (GenBoard.instance.board[(tile.boardPosition.x + 1, tile.boardPosition.y)])
+                                    {
+                                        if (!GenBoard.instance.board[(tile.boardPosition.x + 1, tile.boardPosition.y)].stonesOnTile.Last().cap && !GenBoard.instance.board[(tile.boardPosition.x + 1, tile.boardPosition.y)].stonesOnTile.Last().wall)
+                                            moves.Add(moveStone);
+                                    }
                                 }
+                                catch { }
                             }
-                            catch { }
-                        }
-                        if (dir == 'd')
-                        {
-                            try
+                            if (dir == 'd')
                             {
-                                if (GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y - 1)])
+                                try
                                 {
-                                    moves.Add(moveStone);
+                                    if (GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y - 1)])
+                                    {
+                                        if (!GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y - 1)].stonesOnTile.Last().cap && !GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y - 1)].stonesOnTile.Last().wall)
+                                            moves.Add(moveStone);
+                                    }
                                 }
+                                catch { }
                             }
-                            catch { }
-                        }
-                        else if (dir == 'l')
-                        {
-                            try
+                            else if (dir == 'l')
                             {
-                                if (GenBoard.instance.board[(tile.boardPosition.x - 1, tile.boardPosition.y)])
+                                try
                                 {
-                                    moves.Add(moveStone);
+                                    if (GenBoard.instance.board[(tile.boardPosition.x - 1, tile.boardPosition.y)])
+                                    {
+                                        if (!GenBoard.instance.board[(tile.boardPosition.x - 1, tile.boardPosition.y)].stonesOnTile.Last().cap && !GenBoard.instance.board[(tile.boardPosition.x - 1, tile.boardPosition.y)].stonesOnTile.Last().wall)
+                                            moves.Add(moveStone);
+                                    }
                                 }
+                                catch { }
                             }
-                            catch { }
                         }
                     }
                 }
