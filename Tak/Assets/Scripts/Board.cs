@@ -61,6 +61,7 @@ public class Board
         Board newBoard = new Board(baseBoard);
 
         editBoard(newBoard, move);
+        newBoard.quantifyBoard();
 
         return newBoard;
     }
