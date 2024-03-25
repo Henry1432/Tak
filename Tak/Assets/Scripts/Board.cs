@@ -8,6 +8,7 @@ using static UnityEngine.GraphicsBuffer;
 
 public class BoardTile
 {
+
     public TileColor owner;
     public float control; //who has control of the tile, 0 means total and opressive control by black, 1 means total and opressive control by white
     public int range; //distance this tile can cover
