@@ -36,6 +36,9 @@ public class Board
     public TileColor advantage; //who the proximity is for,
             //if white is close to a win prox would be 2 and advantage would be white.
             //if black and white are both 3 away from win prox would be avarage of both(3) and advantage would be none.
+    public TileColor win = TileColor.None;
+    public Board root = null;
+    public List<Board> children = new List<Board>();
     public Board()
     {
         board = new Dictionary<(int, int), BoardTile>();
@@ -63,6 +66,8 @@ public class Board
 
         editBoard(newBoard, move);
         newBoard.quantifyBoard();
+        newBoard.root = baseBoard;
+        baseBoard.children.Add(newBoard);
 
         return newBoard;
     }
@@ -292,6 +297,7 @@ public class Board
         target.totalControl /= target.board.Count;
 
         target.quantifyBoard();
+        target.root = target;
     }
 
     private void quantifyBoard()
@@ -434,6 +440,8 @@ public class Board
             {
                 if (board[(checkX, checkY)].owner == board[(checkX, checkY + 1)].owner)
                 {
+                    if (dist >= GenBoard.getSize() - 1)
+                        win = board[(checkX, checkY)].owner;
                     return checkPath(checkX, checkY + 1, dist, dir);
                 }
                 else
@@ -453,6 +461,8 @@ public class Board
             {
                 if (board[(checkX, checkY)].owner == board[(checkX + 1, checkY)].owner)
                 {
+                    if (dist >= GenBoard.getSize() - 1)
+                        win = board[(checkX, checkY)].owner;
                     return checkPath(checkX + 1, checkY, dist, dir);
                 }
                 else
@@ -472,6 +482,8 @@ public class Board
             {
                 if (board[(checkX, checkY)].owner == board[(checkX, checkY - 1)].owner)
                 {
+                    if (dist >= GenBoard.getSize() - 1)
+                        win = board[(checkX, checkY)].owner;
                     return checkPath(checkX, checkY - 1, dist, dir);
                 }
                 else
@@ -491,6 +503,8 @@ public class Board
             {
                 if (board[(checkX, checkY)].owner == board[(checkX + 1, checkY)].owner)
                 {
+                    if (dist >= GenBoard.getSize() - 1)
+                        win = board[(checkX, checkY)].owner;
                     return checkPath(checkX - 1, checkY, dist, dir);
                 }
                 else

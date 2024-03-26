@@ -8,10 +8,57 @@ public class Strategy
                                    //if there is a move that lowers control but has a higher score the agression decides if its worth the risk
 
 
-    public static void MiniMax(Board current, int depth, float alpha, float beta, bool maximizing)
+    public static float MiniMax(Board current, int depth, float alpha, float beta, bool maximizing)
     {
         //this will be the impementation of the minimax with alpha beta pruning. I feel that this is a better fit for my use case then MCTS
             //I do need to consider weather I am wrong about this and that is how I spent the majority of todays work session.
+
+        if(depth == 0 || current.win != TileColor.None)
+        {
+            return Score(current);
+        }
+
+        if(maximizing)
+        {
+            float maxEval = -Mathf.Infinity;
+            foreach(Board child in current.children)
+            {
+                float eval = MiniMax(child, depth - 1, alpha, beta, false);
+                maxEval = Mathf.Max(maxEval, eval);
+                alpha = Mathf.Max(alpha, eval);
+                if(beta <= alpha)
+                {
+                    break;
+                }
+            }
+
+            if(current.root == current)
+            {
+                //return for move format
+            }
+
+            return maxEval;
+        }
+        else
+        {
+            float minEval = Mathf.Infinity;
+            foreach (Board child in current.children)
+            {
+                float eval = MiniMax(child, depth - 1, alpha, beta, true);
+                minEval = Mathf.Min(minEval, eval);
+                beta = Mathf.Min(beta, eval);
+                if(beta <= alpha)
+                {
+                    break;
+                }
+            }
+
+            if (current.root == current)
+            {
+                //return for move format
+            }
+            return minEval;
+        }
     }
     public static float Score(Board board)
     {
