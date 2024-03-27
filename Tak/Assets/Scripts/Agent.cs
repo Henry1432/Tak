@@ -58,6 +58,7 @@ public class Agent : MonoBehaviour
             DateTime save = DateTime.Now;
             Board.getCurrentBoard(TestBoard);
 
+            /*
             moves.Clear();
 
             //System.DateTime timeTest = System.DateTime.Now;
@@ -74,6 +75,9 @@ public class Agent : MonoBehaviour
             }
             else
                 Debug.Log("sUcc");
+            */
+
+            Strategy.GetNextMove(this);
 
             Debug.Log(DateTime.Now - save);
         }
@@ -252,7 +256,101 @@ public class Agent : MonoBehaviour
         }
     }
 
-    private List<Moves> getMoves()
+    public static List<Moves> getMoves(Board board, TileColor turn)
+    {
+        List<Moves> moves = new List<Moves>();
+
+        List<BoardTile> check = getValidTiles(board, turn);
+
+        char[] directions = { 'u', 'r', 'd', 'l' };
+
+        foreach (BoardTile tile in check)
+        {
+            if (tile.stonesOnTile.Count == 0)
+            {
+                Moves place = new Moves(turn == TileColor.White ? 'w' : 'b', 'f', tile.boardPosition);
+                moves.Add(place);
+
+                place = new Moves(turn == TileColor.White ? 'w' : 'b', 't', tile.boardPosition);
+                moves.Add(place);
+                if ((turn == TileColor.White ? !board.wCapstonePlaced : !board.bCapstonePlaced))
+                {
+                    Moves capPlace = new Moves(turn == TileColor.White ? 'W' : 'B', 'f', tile.boardPosition);
+                    moves.Add(capPlace);
+                }
+            }
+            else
+            {
+                foreach (char dir in directions)
+                {
+                    for (short i = 1; i <= tile.stonesOnTile.Count; i++)
+                    {
+                        for (short a = 0; a < tile.stonesOnTile.Count; a++)
+                        {
+                            Moves moveStone = new Moves(tile.boardPosition, dir, i, a);
+                            if (dir == 'u')
+                            {
+                                try
+                                {
+                                    if (GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y + 1)])
+                                    {
+                                        if (!GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y + 1)].stonesOnTile.Last().cap && !GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y + 1)].stonesOnTile.Last().wall)
+                                            moves.Add(moveStone);
+                                    }
+                                }
+                                catch { }
+                            }
+                            else if (dir == 'r')
+                            {
+                                try
+                                {
+                                    if (GenBoard.instance.board[(tile.boardPosition.x + 1, tile.boardPosition.y)])
+                                    {
+                                        if (!GenBoard.instance.board[(tile.boardPosition.x + 1, tile.boardPosition.y)].stonesOnTile.Last().cap && !GenBoard.instance.board[(tile.boardPosition.x + 1, tile.boardPosition.y)].stonesOnTile.Last().wall)
+                                            moves.Add(moveStone);
+                                    }
+                                }
+                                catch { }
+                            }
+                            if (dir == 'd')
+                            {
+                                try
+                                {
+                                    if (GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y - 1)])
+                                    {
+                                        if (!GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y - 1)].stonesOnTile.Last().cap && !GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y - 1)].stonesOnTile.Last().wall)
+                                            moves.Add(moveStone);
+                                    }
+                                }
+                                catch { }
+                            }
+                            else if (dir == 'l')
+                            {
+                                try
+                                {
+                                    if (GenBoard.instance.board[(tile.boardPosition.x - 1, tile.boardPosition.y)])
+                                    {
+                                        if (!GenBoard.instance.board[(tile.boardPosition.x - 1, tile.boardPosition.y)].stonesOnTile.Last().cap && !GenBoard.instance.board[(tile.boardPosition.x - 1, tile.boardPosition.y)].stonesOnTile.Last().wall)
+                                            moves.Add(moveStone);
+                                    }
+                                }
+                                catch { }
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
+        if (moves.Count <= 0)
+        {
+            moves = null;
+        }
+        return moves;
+    }
+
+    public List<Moves> getMoves()
     {
         List<Moves> moves = new List<Moves>();
 
@@ -370,6 +468,35 @@ public class Agent : MonoBehaviour
         }
 
         if(valid.Count <= 0 )
+        {
+            valid = null;
+        }
+        return valid;
+    }
+
+    private static List<BoardTile> getValidTiles(Board board, TileColor turn)
+    {
+        List<BoardTile> valid = new List<BoardTile>();
+
+        foreach (KeyValuePair<(int, int), BoardTile> tile in board.board)
+        {
+            if (tile.Value != null)
+            {
+                if (tile.Value.stonesOnTile.Count > 0)
+                {
+                    if (tile.Value.stonesOnTile.Last().stoneColor == turn)
+                    {
+                        valid.Add(tile.Value);
+                    }
+                }
+                else
+                {
+                    valid.Add(tile.Value);
+                }
+            }
+        }
+
+        if (valid.Count <= 0)
         {
             valid = null;
         }

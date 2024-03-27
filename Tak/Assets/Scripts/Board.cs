@@ -13,18 +13,8 @@ public class BoardTile
     public float control; //who has control of the tile, 0 means total and opressive control by black, 1 means total and opressive control by white
     public int range; //distance this tile can cover
     public bool road; //if the tile is acting as a road
-    public List<Stone> stonesOnTile = new List<Stone>();
-
-    ~BoardTile()
-    {
-        for(int i = stonesOnTile.Count - 1; i >= 0; i--)
-        {
-            if (stonesOnTile[i].isTemp())
-            {
-                stonesOnTile[i].DeleteTemp();
-            }
-        }
-    }
+    public List<TempStone> stonesOnTile = new List<TempStone>();
+    public Vector2 boardPosition;
 }
 
 public class Board
@@ -37,6 +27,8 @@ public class Board
             //if white is close to a win prox would be 2 and advantage would be white.
             //if black and white are both 3 away from win prox would be avarage of both(3) and advantage would be none.
     public TileColor win = TileColor.None;
+    public bool wCapstonePlaced;
+    public bool bCapstonePlaced;
     public Board root = null;
     public List<Board> children = new List<Board>();
     public Board()
@@ -65,7 +57,7 @@ public class Board
         Board newBoard = new Board(baseBoard);
 
         editBoard(newBoard, move);
-        newBoard.quantifyBoard();
+        //newBoard.quantifyBoard();
         newBoard.root = baseBoard;
         baseBoard.children.Add(newBoard);
 
@@ -94,10 +86,12 @@ public class Board
                 if (boardTile.owner == TileColor.White)
                 {
                     boardTile.control = getTileControl(1, 0, false, true, boardTile.owner, out boardTile.road);
+                    target.wCapstonePlaced = true;
                 }
                 else
                 {
                     boardTile.control = getTileControl(0, 1, false, true, boardTile.owner, out boardTile.road);
+                    target.bCapstonePlaced= true;
                 }
             }
             else
@@ -112,10 +106,11 @@ public class Board
                 }
             }
             boardTile.range = 1;
+            boardTile.boardPosition = move.getOrigin();
 
             bool success; 
             Tile tile = GenBoard.instance.board[((float)move.getOriginX(), (float)move.getOriginY())];
-            Stone stone = Stone.getTempStone(boardTile.owner, move.isWall(), move.isCapstone(), tile);
+            TempStone stone = new TempStone(boardTile.owner, move.isWall(), move.isCapstone(), tile);
             if(stone != null)
             {
                 boardTile.stonesOnTile.Add(stone);
@@ -126,138 +121,137 @@ public class Board
         }
         else
         {
-            List<Stone> movingTiles = target.board[((int)move.getOriginX(), (int)move.getOriginY())].stonesOnTile, abandonedTiles = new List<Stone>();
-            for (int a = 0; a < move.getAbandon(); a++)
+            List<TempStone> movingTiles = target.board[((int)move.getOriginX(), (int)move.getOriginY())].stonesOnTile, abandonedTiles = new List<TempStone>();
+            if(movingTiles.Count > 0)
             {
-                abandonedTiles.Add(movingTiles.First());
-                movingTiles.Remove(movingTiles.First());
-            }
-            int xDist = 0, yDist = 0;
-            for(int i = 0; i < move.getDist(); i++)
-            {
-                if(movingTiles.Count > 0)
+                for (int a = 0; a < move.getAbandon(); a++)
                 {
-                    BoardTile thisTile = new BoardTile(), nextTile = new BoardTile();
-                    if(abandonedTiles.Count > 0)
-                        thisTile.stonesOnTile.AddRange(abandonedTiles);
+                    abandonedTiles.Add(movingTiles.First());
+                    movingTiles.Remove(movingTiles.First());
+                }
+                int xDist = 0, yDist = 0;
+                for(int i = 0; i < move.getDist(); i++)
+                {
                     if(movingTiles.Count > 0)
                     {
-                        nextTile.stonesOnTile.AddRange(movingTiles);
-
-                        abandonedTiles.Add(movingTiles.First());
-                        movingTiles.Remove(movingTiles.First());
-                    }
-
-                    if(thisTile.stonesOnTile.Count > 0)
-                    {
-                        thisTile.owner = thisTile.stonesOnTile.Last().stoneColor;
-                        thisTile.control = getTileControl(thisTile.stonesOnTile, out thisTile.road);
-                    }
-                    else
-                    {
-                        thisTile.owner = TileColor.None;
-                        thisTile.control = 0.5f;
-                    }
-
-                    if (nextTile.stonesOnTile.Count > 0)
-                    {
-                        nextTile.owner = nextTile.stonesOnTile.Last().stoneColor;
-                        nextTile.control = getTileControl(nextTile.stonesOnTile, out nextTile.road);
-                    }
-                    else
-                    {
-                        nextTile.owner = TileColor.None;
-                        nextTile.control = 0.5f;
-                    }
-
-                    if (move.getDirection() == 'u')
-                    {
-                        yDist += 1;
-                        try
+                        BoardTile thisTile = new BoardTile(), nextTile = new BoardTile();
+                        if(abandonedTiles.Count > 0)
+                            thisTile.stonesOnTile.AddRange(abandonedTiles);
+                        if(movingTiles.Count > 0)
                         {
-                            thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist - 1)].stonesOnTile);
+                            nextTile.stonesOnTile.AddRange(movingTiles);
+
+                            abandonedTiles.Add(movingTiles.First());
+                            movingTiles.Remove(movingTiles.First());
                         }
-                        catch { }
-                        try 
+
+                        if(thisTile.stonesOnTile.Count > 0)
                         {
-                            nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
+                            thisTile.owner = thisTile.stonesOnTile.Last().stoneColor;
+                            thisTile.control = getTileControl(thisTile.stonesOnTile, out thisTile.road);
                         }
-                        catch{}
-
-                        thisTile.range = thisTile.stonesOnTile.Count;
-                        nextTile.range = nextTile.stonesOnTile.Count;
-
-                        target.board.Remove((move.getOriginX() + xDist, move.getOriginY() + yDist - 1));
-                        target.board.Add((move.getOriginX() + xDist, move.getOriginY() + yDist - 1), thisTile);
-                        target.board.Remove((move.getOriginX() + xDist, move.getOriginY() + yDist));
-                        target.board.Add((move.getOriginX() + xDist, move.getOriginY() + yDist), nextTile);
-
-                    }
-                    else if(move.getDirection() == 'r')
-                    {
-                        xDist += 1;
-                        try 
+                        else
                         {
-                            thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist - 1, move.getOriginY() + yDist)].stonesOnTile);
+                            thisTile.owner = TileColor.None;
+                            thisTile.control = 0.5f;
                         }
-                        catch{}
-                        try 
+
+                        if (nextTile.stonesOnTile.Count > 0)
                         {
-                            nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
+                            nextTile.owner = nextTile.stonesOnTile.Last().stoneColor;
+                            nextTile.control = getTileControl(nextTile.stonesOnTile, out nextTile.road);
                         }
-                        catch{}
-
-                        thisTile.range = thisTile.stonesOnTile.Count;
-                        nextTile.range = nextTile.stonesOnTile.Count;
-
-                        target.board.Remove((move.getOriginX() + xDist - 1, move.getOriginY() + yDist));
-                        target.board.Add((move.getOriginX() + xDist - 1, move.getOriginY() + yDist), thisTile);
-                        target.board.Remove((move.getOriginX() + xDist, move.getOriginY() + yDist));
-                        target.board.Add((move.getOriginX() + xDist, move.getOriginY() + yDist), nextTile);
-                    }
-                    else if (move.getDirection() == 'd')
-                    {
-                        yDist -= 1;
-                        try 
+                        else
                         {
-                            thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist + 1)].stonesOnTile);
+                            nextTile.owner = TileColor.None;
+                            nextTile.control = 0.5f;
                         }
-                        catch{}
-                        try 
-                        {                        
-                            nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
-                        }
-                        catch{}
 
-                        thisTile.range = thisTile.stonesOnTile.Count;
-                        nextTile.range = nextTile.stonesOnTile.Count;
-
-                        target.board.Remove((move.getOriginX() + xDist, move.getOriginY() + yDist + 1));
-                        target.board.Add((move.getOriginX() + xDist, move.getOriginY() + yDist + 1), thisTile);
-                        target.board.Remove((move.getOriginX() + xDist, move.getOriginY() + yDist));
-                        target.board.Add((move.getOriginX() + xDist, move.getOriginY() + yDist), nextTile);
-                    }
-                    else
-                    {
-                        xDist -= 1;
-                        try
+                        if (move.getDirection() == 'u')
                         {
-                            thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist + 1, move.getOriginY() + yDist)].stonesOnTile);
+                            yDist += 1;
+                            try
+                            {
+                                thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist - 1)].stonesOnTile);
+                            }
+                            catch { }
+                            try 
+                            {
+                                nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
+                            }
+                            catch{}
+
+                            thisTile.range = thisTile.stonesOnTile.Count;
+                            nextTile.range = nextTile.stonesOnTile.Count;
+
+                            thisTile.boardPosition = target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist - 1)].boardPosition;
+                            nextTile.boardPosition = target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].boardPosition;
                         }
-                        catch{}
-                        try 
+                        else if(move.getDirection() == 'r')
                         {
-                            nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
+                            xDist += 1;
+                            try 
+                            {
+                                thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist - 1, move.getOriginY() + yDist)].stonesOnTile);
+                            }
+                            catch{}
+                            try 
+                            {
+                                nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
+                            }
+                            catch{}
+
+                            thisTile.range = thisTile.stonesOnTile.Count;
+                            nextTile.range = nextTile.stonesOnTile.Count;
+
+                            thisTile.boardPosition = target.board[(move.getOriginX() + xDist - 1, move.getOriginY() + yDist)].boardPosition;
+                            nextTile.boardPosition = target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].boardPosition;
                         }
-                        catch{}
+                        else if (move.getDirection() == 'd')
+                        {
+                            yDist -= 1;
+                            try 
+                            {
+                                thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist + 1)].stonesOnTile);
+                            }
+                            catch{}
+                            try 
+                            {                        
+                                nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
+                            }
+                            catch{}
 
-                        thisTile.range = thisTile.stonesOnTile.Count;
-                        nextTile.range = nextTile.stonesOnTile.Count;
+                            thisTile.range = thisTile.stonesOnTile.Count;
+                            nextTile.range = nextTile.stonesOnTile.Count;
 
-                        target.board.Remove((move.getOriginX() + xDist + 1, move.getOriginY() + yDist));
-                        target.board.Add((move.getOriginX() + xDist + 1, move.getOriginY() + yDist), thisTile);
-                        target.board.Remove((move.getOriginX() + xDist, move.getOriginY() + yDist));
-                        target.board.Add((move.getOriginX() + xDist, move.getOriginY() + yDist), nextTile);
+                            thisTile.boardPosition = target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist + 1)].boardPosition;
+                            nextTile.boardPosition = target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].boardPosition;
+                        }
+                        else
+                        {
+                            xDist -= 1;
+                            try
+                            {
+                                thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist + 1, move.getOriginY() + yDist)].stonesOnTile);
+                            }
+                            catch{}
+                            try 
+                            {
+                                nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
+                            }
+                            catch{}
+
+                            thisTile.range = thisTile.stonesOnTile.Count;
+                            nextTile.range = nextTile.stonesOnTile.Count;
+
+                            thisTile.boardPosition = target.board[(move.getOriginX() + xDist + 1, move.getOriginY() + yDist)].boardPosition;
+                            nextTile.boardPosition = target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].boardPosition;
+                        }
+
+                        target.board.Remove(((int)thisTile.boardPosition.x, (int)thisTile.boardPosition.y));
+                        target.board.Add(((int)thisTile.boardPosition.x, (int)thisTile.boardPosition.y), thisTile);
+                        target.board.Remove(((int)nextTile.boardPosition.x, (int)nextTile.boardPosition.y));
+                        target.board.Add(((int)nextTile.boardPosition.x, (int)nextTile.boardPosition.y), nextTile);
                     }
                 }
             }
@@ -280,7 +274,18 @@ public class Board
                 boardTile.owner = tile.Value.stonesOnTile.Last().stoneColor;
                 boardTile.control = getTileControl(tile.Value, out boardTile.road);
                 boardTile.range = tile.Value.stonesOnTile.Count;
-                boardTile.stonesOnTile = tile.Value.stonesOnTile;
+                foreach(Stone stone in  tile.Value.stonesOnTile)
+                {
+                    boardTile.stonesOnTile.Add(new TempStone(stone)); 
+                }
+
+                if(tile.Value.stonesOnTile.Last().cap)
+                {
+                    if(boardTile.owner == TileColor.White)
+                        target.wCapstonePlaced = true;
+                    else
+                        target.bCapstonePlaced = true;
+                }
             }
             else
             {
@@ -288,6 +293,7 @@ public class Board
                 boardTile.control = 0.5f;
                 boardTile.range = 0;
             }
+            boardTile.boardPosition = tile.Value.boardPosition;
             
             target.board.Add(((int)tile.Key.Item1, (int)tile.Key.Item2), boardTile);
             target.coverage += boardTile.owner == TileColor.White ? 1 : 0;
@@ -300,7 +306,7 @@ public class Board
         target.root = target;
     }
 
-    private void quantifyBoard()
+    public void quantifyBoard()
     {
         proximity = Mathf.Infinity;
         advantage = TileColor.None;
@@ -556,10 +562,10 @@ public class Board
         return control;
     }
 
-    private static float getTileControl(List<Stone> stones, out bool road)
+    private static float getTileControl(List<TempStone> stones, out bool road)
     {
         int whiteStonesOnTile = 0;
-        foreach (Stone stone in stones)
+        foreach (TempStone stone in stones)
         {
             if (stone.stoneColor == TileColor.White)
             {
