@@ -15,6 +15,7 @@ public class Strategy
 
         if(depth == 0 || current.win != TileColor.None)
         {
+            //this is ran at the base of the tree
             return Score(current);
         }
 
@@ -37,6 +38,7 @@ public class Strategy
                 //return for move format
             }
 
+            //this might need to be different at the root, not taking in depth or alpha or beta, just what player is going. it generates the tree stuff and runs the minimax and returns the chosen move
             return maxEval;
         }
         else
@@ -57,20 +59,15 @@ public class Strategy
             {
                 //return for move format
             }
+
+            //ditto
             return minEval;
-        }
+        }  
     }
     public static float Score(Board board)
     {
         //use the saved information of the board to generate a numarical value that represents the value of the board
 
         return -1f;
-    }
-
-    public static float Compair(Board board1, Board board2)
-    {
-        //this is for compairing 2 boards. sometimes obvous, like if the scores are like "Do you want to give the enemy the victory or naw?" but other times the different board states are super similar and using the agression system is needed. 
-
-        return -1;
     }
 }
