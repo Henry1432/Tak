@@ -31,6 +31,9 @@ public class Board
     public bool bCapstonePlaced;
     public Board root = null;
     public List<Board> children = new List<Board>();
+
+    public Moves saveMove;
+    public float SaveScore;
     public Board()
     {
         board = new Dictionary<(int, int), BoardTile>();
@@ -59,6 +62,7 @@ public class Board
         editBoard(newBoard, move);
         //newBoard.quantifyBoard();
         newBoard.root = baseBoard;
+        newBoard.saveMove = move;
         baseBoard.children.Add(newBoard);
 
         return newBoard;
@@ -302,7 +306,7 @@ public class Board
         target.coverage /= target.board.Count;
         target.totalControl /= target.board.Count;
 
-        target.quantifyBoard();
+        //target.quantifyBoard();
         target.root = target;
     }
 

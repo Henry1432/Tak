@@ -1,20 +1,41 @@
 using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Strategy
 {
-    public static float agression; //a value between 0 and 1 to show whos on the defensive and whos on the offensive. used when compairing board states to decide what is actually better
+    public static float agression = 0.5f; //a value between 0 and 1 to show whos on the defensive and whos on the offensive. used when compairing board states to decide what is actually better
                                    //if there is a move that lowers control but has a higher score the agression decides if its worth the risk
+    public const float ADVANTAGE = 10f;
+    public const int DEPTH = 3;
     public static Moves GetNextMove(Agent agent)
     {
         Board current = new Board();
         Board.getCurrentBoard(current);
 
-        fillTree(current, 3, agent.agentColor);
+        fillTree(current, DEPTH, agent.agentColor);
 
-        return null;
+        float moveScore = MiniMax(current, DEPTH, Mathf.Infinity, Mathf.Infinity, agent.agentColor == TileColor.White);
+        Board lostBoardBackup = current.children[0];
+
+        foreach(Board child  in current.children)
+        {
+            if(agent.agentColor == TileColor.White ? child.SaveScore > lostBoardBackup.SaveScore : child.SaveScore < lostBoardBackup.SaveScore)
+            {
+                lostBoardBackup = child;
+            }
+            if(child.SaveScore == moveScore)
+            {
+                Debug.Log("found");
+                return child.saveMove;
+            }
+        }
+
+        //shouldnt run
+        Debug.Log("backup");
+        return lostBoardBackup.saveMove;
     }
 
     private static void fillTree(Board board, int depth, TileColor currentTurn)
@@ -69,11 +90,7 @@ public class Strategy
                 }
             }
 
-            if(current.root == current)
-            {
-                //return for move format
-            }
-
+            current.SaveScore = maxEval;
             //this might need to be different at the root, not taking in depth or alpha or beta, just what player is going. it generates the tree stuff and runs the minimax and returns the chosen move
             return maxEval;
         }
@@ -91,12 +108,7 @@ public class Strategy
                 }
             }
 
-            if (current.root == current)
-            {
-                //return for move format
-            }
-
-            //ditto
+            current.SaveScore = maxEval;
             return minEval;
         }  
     }
@@ -104,6 +116,30 @@ public class Strategy
     {
         board.quantifyBoard();
 
-        return -1f;
+        float score;
+
+        if(board.advantage == TileColor.None)
+        {
+            score = ADVANTAGE/2f;
+        }
+        else if(board.advantage == TileColor.White)
+        {
+            score = ADVANTAGE;
+        }
+        else
+        {
+            score = 0;
+        }
+
+        agression *= 1f - (0.5f - Mathf.Clamp(board.coverage, 0.3f, 0.7f));
+        Mathf.Clamp(agression, 0.1f, 1f);
+        if(board.proximity < 3)
+        {
+            agression *= 1.3f;
+        }
+
+        score *= ((1f-(0.5f-board.totalControl)) * Mathf.Clamp((1f-(0.5f-agression)), 0.8f, 1.5f));
+
+        return score;
     }
 }
