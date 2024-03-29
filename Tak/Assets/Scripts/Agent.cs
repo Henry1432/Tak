@@ -57,6 +57,7 @@ public class Agent : MonoBehaviour
             TestBoard = new Board();
             DateTime save = DateTime.Now;
             Board.getCurrentBoard(TestBoard);
+            TestBoard.quantifyBoard();
 
             /*
             moves.Clear();

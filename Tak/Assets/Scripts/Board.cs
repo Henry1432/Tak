@@ -432,7 +432,12 @@ public class Board
             }
             else
             {
-                advantage = TileColor.None;
+                if(totalControl > 0.5)
+                    advantage = TileColor.White;
+                else if(totalControl < 0.5)
+                    advantage = TileColor.Black;
+                else
+                    advantage = TileColor.None;
                 if (poxi.Count > 0)
                     proximity = (totalPoxi / poxi.Count) * 1.5f;
                 else
@@ -456,6 +461,8 @@ public class Board
                 }
                 else
                 {
+                    if (board[(checkX, checkY + 1)].stonesOnTile.Last().wall || board[(checkX, checkY + 1)].stonesOnTile.Last().cap)
+                        dist--;
                     return dist;
                 }
 
@@ -477,6 +484,8 @@ public class Board
                 }
                 else
                 {
+                    if (board[(checkX + 1, checkY)].stonesOnTile.Last().wall || board[(checkX + 1, checkY)].stonesOnTile.Last().cap)
+                        dist--;
                     return dist;
                 }
 
@@ -498,6 +507,8 @@ public class Board
                 }
                 else
                 {
+                    if (board[(checkX, checkY - 1)].stonesOnTile.Last().wall || board[(checkX, checkY - 1)].stonesOnTile.Last().cap)
+                        dist--;
                     return dist;
                 }
 
@@ -519,6 +530,8 @@ public class Board
                 }
                 else
                 {
+                    if (board[(checkX + 1, checkY)].stonesOnTile.Last().wall || board[(checkX + 1, checkY)].stonesOnTile.Last().cap)
+                        dist--;
                     return dist;
                 }
 
