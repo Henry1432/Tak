@@ -1582,6 +1582,7 @@ MonoBehaviour:
   psc: {fileID: 0}
   epsc: {fileID: 0}
   check: 0
+  test: 0
 --- !u!114 &1592395153
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1599,6 +1600,7 @@ MonoBehaviour:
   psc: {fileID: 0}
   epsc: {fileID: 0}
   check: 0
+  test: 0
 --- !u!1 &1650431452
 GameObject:
   m_ObjectHideFlags: 0

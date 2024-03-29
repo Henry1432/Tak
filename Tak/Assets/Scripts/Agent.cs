@@ -78,9 +78,10 @@ public class Agent : MonoBehaviour
                 Debug.Log("sUcc");
             */
 
-            Strategy.GetNextMove(this);
+            Moves move = Strategy.GetNextMove(this);
 
             Debug.Log(DateTime.Now - save);
+            Debug.Log(move.getOrigin() + ", " + move.isPlaceStone() + ", " + move.isMoveStone() );
         }
 
         if (check && (agentColor == GameController.instance.currentTurn))
@@ -293,10 +294,17 @@ public class Agent : MonoBehaviour
                             {
                                 try
                                 {
-                                    if (GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y + 1)])
+                                    //if (GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y + 1)])
                                     {
-                                        if (!GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y + 1)].stonesOnTile.Last().cap && !GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y + 1)].stonesOnTile.Last().wall)
+                                        if(board.getStonesOnTile((int)tile.boardPosition.x, (int)tile.boardPosition.y + 1) > 0)
+                                        {
+                                            if (!board.getLastStoneOnTile((int)tile.boardPosition.x, (int)tile.boardPosition.y + 1).cap && !board.getLastStoneOnTile((int)tile.boardPosition.x, (int)tile.boardPosition.y + 1).wall)
+                                                moves.Add(moveStone);
+                                        }
+                                        else
+                                        {
                                             moves.Add(moveStone);
+                                        }
                                     }
                                 }
                                 catch { }
@@ -305,10 +313,17 @@ public class Agent : MonoBehaviour
                             {
                                 try
                                 {
-                                    if (GenBoard.instance.board[(tile.boardPosition.x + 1, tile.boardPosition.y)])
+                                    //if (GenBoard.instance.board[(tile.boardPosition.x + 1, tile.boardPosition.y)])
                                     {
-                                        if (!GenBoard.instance.board[(tile.boardPosition.x + 1, tile.boardPosition.y)].stonesOnTile.Last().cap && !GenBoard.instance.board[(tile.boardPosition.x + 1, tile.boardPosition.y)].stonesOnTile.Last().wall)
+                                        if(board.getStonesOnTile((int)tile.boardPosition.x + 1, (int)tile.boardPosition.y) > 0)
+                                        {
+                                            if (!board.getLastStoneOnTile((int)tile.boardPosition.x + 1, (int)tile.boardPosition.y).cap && !board.getLastStoneOnTile((int)tile.boardPosition.x + 1, (int)tile.boardPosition.y).wall)
+                                                moves.Add(moveStone);
+                                        }
+                                        else
+                                        {
                                             moves.Add(moveStone);
+                                        }
                                     }
                                 }
                                 catch { }
@@ -317,10 +332,17 @@ public class Agent : MonoBehaviour
                             {
                                 try
                                 {
-                                    if (GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y - 1)])
+                                    //if (GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y - 1)])
                                     {
-                                        if (!GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y - 1)].stonesOnTile.Last().cap && !GenBoard.instance.board[(tile.boardPosition.x, tile.boardPosition.y - 1)].stonesOnTile.Last().wall)
+                                        if (board.getStonesOnTile((int)tile.boardPosition.x, (int)tile.boardPosition.y - 1) > 0)
+                                        {
+                                            if (!board.getLastStoneOnTile((int)tile.boardPosition.x, (int)tile.boardPosition.y - 1).cap && !board.getLastStoneOnTile((int)tile.boardPosition.x, (int)tile.boardPosition.y - 1).wall)
+                                                moves.Add(moveStone);
+                                        }
+                                        else
+                                        {
                                             moves.Add(moveStone);
+                                        }
                                     }
                                 }
                                 catch { }
@@ -329,10 +351,17 @@ public class Agent : MonoBehaviour
                             {
                                 try
                                 {
-                                    if (GenBoard.instance.board[(tile.boardPosition.x - 1, tile.boardPosition.y)])
+                                    //if (GenBoard.instance.board[(tile.boardPosition.x - 1, tile.boardPosition.y)])
                                     {
-                                        if (!GenBoard.instance.board[(tile.boardPosition.x - 1, tile.boardPosition.y)].stonesOnTile.Last().cap && !GenBoard.instance.board[(tile.boardPosition.x - 1, tile.boardPosition.y)].stonesOnTile.Last().wall)
+                                        if (board.getStonesOnTile((int)tile.boardPosition.x - 1, (int)tile.boardPosition.y) > 0)
+                                        {
+                                            if (!board.getLastStoneOnTile((int)tile.boardPosition.x - 1, (int)tile.boardPosition.y).cap && !board.getLastStoneOnTile((int)tile.boardPosition.x + 1, (int)tile.boardPosition.y).wall)
+                                                moves.Add(moveStone);
+                                        }
+                                        else
+                                        {
                                             moves.Add(moveStone);
+                                        }
                                     }
                                 }
                                 catch { }
