@@ -287,7 +287,7 @@ public class Agent : MonoBehaviour
                 {
                     for (short i = 1; i <= tile.stonesOnTile.Count; i++)
                     {
-                        for (short a = 0; a < tile.stonesOnTile.Count; a++)
+                        for (short a = 0; a < tile.stonesOnTile.Count - i; a++)
                         {
                             Moves moveStone = new Moves(tile.boardPosition, dir, i, a);
                             if (dir == 'u')

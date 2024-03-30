@@ -60,7 +60,7 @@ public class Board
         Board newBoard = new Board(baseBoard);
 
         editBoard(newBoard, move);
-        //newBoard.quantifyBoard();
+        newBoard.quantifyBoard();
         newBoard.root = baseBoard;
         newBoard.saveMove = move;
         baseBoard.children.Add(newBoard);
@@ -125,7 +125,7 @@ public class Board
         }
         else
         {
-            List<TempStone> movingTiles = target.board[((int)move.getOriginX(), (int)move.getOriginY())].stonesOnTile, abandonedTiles = new List<TempStone>();
+            List<TempStone> movingTiles = new List<TempStone>(target.board[((int)move.getOriginX(), (int)move.getOriginY())].stonesOnTile), abandonedTiles = new List<TempStone>();
             for (int a = 0; a < move.getAbandon(); a++)
             {
                 if (movingTiles.Count > 0)
@@ -175,11 +175,11 @@ public class Board
                     if (move.getDirection() == 'u')
                     {
                         yDist += 1;
-                        try
+                        /*try
                         {
                             thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist - 1)].stonesOnTile);
                         }
-                        catch { }
+                        catch { }*/
                         try 
                         {
                             nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
@@ -195,11 +195,11 @@ public class Board
                     else if(move.getDirection() == 'r')
                     {
                         xDist += 1;
-                        try 
+                        /*try 
                         {
                             thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist - 1, move.getOriginY() + yDist)].stonesOnTile);
                         }
-                        catch{}
+                        catch{}*/
                         try 
                         {
                             nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
@@ -215,11 +215,11 @@ public class Board
                     else if (move.getDirection() == 'd')
                     {
                         yDist -= 1;
-                        try 
+                        /*try 
                         {
                             thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist + 1)].stonesOnTile);
                         }
-                        catch{}
+                        catch{}*/
                         try 
                         {                        
                             nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
@@ -235,11 +235,11 @@ public class Board
                     else
                     {
                         xDist -= 1;
-                        try
+                        /*try
                         {
                             thisTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist + 1, move.getOriginY() + yDist)].stonesOnTile);
                         }
-                        catch{}
+                        catch{}*/
                         try 
                         {
                             nextTile.stonesOnTile.AddRange(target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].stonesOnTile);
@@ -594,9 +594,11 @@ public class Board
     private static float getTileControl(int whiteStones, int blackStones, bool wall, bool cap, TileColor owner, out bool road)
     {
         float control = ((whiteStones / (whiteStones + blackStones)) * 0.4f) + 0.3f;
+        if (whiteStones + blackStones == 0)
+            control = 0.5f;
         if (cap)
         {
-            road = false;
+            road = true;
             if (owner == TileColor.White)
             {
                 control += 0.3f;

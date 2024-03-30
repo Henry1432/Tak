@@ -67,7 +67,12 @@ public class Strategy
 
         foreach (Moves move in moves)
         {
-            Board.getNewBoard(board, move);
+            if(!move.isPlaceStone())
+            {
+                Board.getNewBoard(board, move);
+            }
+            else
+                Board.getNewBoard(board, move);
         }
     }
 
@@ -190,6 +195,11 @@ public class Strategy
     public static float Score(Board board, bool maximizing)
     {
         board.quantifyBoard();
+
+        if(board.saveMove.getOrigin() == new Vector2(2, 1) && board.saveMove.isMoveStone())
+        {
+            Debug.Log(board.saveMove.getDirection() + ", " +  board.saveMove.getDist());
+        }
 
         float score = 0;
         bool boost = true;
