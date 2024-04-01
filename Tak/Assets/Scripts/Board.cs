@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ public class BoardTile
     public float control; //who has control of the tile, 0 means total and opressive control by black, 1 means total and opressive control by white
     public int range; //distance this tile can cover
     public bool road; //if the tile is acting as a road
+    public Direction dir;
     public List<TempStone> stonesOnTile = new List<TempStone>();
     public Vector2 boardPosition;
 }
@@ -78,23 +80,23 @@ public class Board
             {
                 if (boardTile.owner == TileColor.White)
                 {
-                    boardTile.control = getTileControl(1, 0, true, false, boardTile.owner, out boardTile.road);
+                    boardTile.control = getTileControl(1, 0, true, false, boardTile.owner);
                 }
                 else
                 {
-                    boardTile.control = getTileControl(0, 1, true, false, boardTile.owner, out boardTile.road);
+                    boardTile.control = getTileControl(0, 1, true, false, boardTile.owner);
                 }
             }
             else if(move.isCapstone())
             {
                 if (boardTile.owner == TileColor.White)
                 {
-                    boardTile.control = getTileControl(1, 0, false, true, boardTile.owner, out boardTile.road);
+                    boardTile.control = getTileControl(1, 0, false, true, boardTile.owner);
                     target.wCapstonePlaced = true;
                 }
                 else
                 {
-                    boardTile.control = getTileControl(0, 1, false, true, boardTile.owner, out boardTile.road);
+                    boardTile.control = getTileControl(0, 1, false, true, boardTile.owner);
                     target.bCapstonePlaced= true;
                 }
             }
@@ -102,11 +104,11 @@ public class Board
             {
                 if (boardTile.owner == TileColor.White)
                 {
-                    boardTile.control = getTileControl(1, 0, false, false, boardTile.owner, out boardTile.road);
+                    boardTile.control = getTileControl(1, 0, false, false, boardTile.owner);
                 }
                 else
                 {
-                    boardTile.control = getTileControl(0, 1, false, false, boardTile.owner, out boardTile.road);
+                    boardTile.control = getTileControl(0, 1, false, false, boardTile.owner);
                 }
             }
             boardTile.range = 1;
@@ -141,7 +143,20 @@ public class Board
                 {
                     BoardTile thisTile = new BoardTile(), nextTile = new BoardTile();
                     if(abandonedTiles.Count > 0)
+                    {
                         thisTile.stonesOnTile.AddRange(abandonedTiles);
+
+                        if(i == 0)
+                        {
+                            for(int a = 0; a < move.getAbandon(); a++)
+                                if(abandonedTiles.Count > 0)
+                                    abandonedTiles.Remove(abandonedTiles.First());
+                        }
+                        else
+                        {
+                            abandonedTiles.Remove(abandonedTiles.First());
+                        }
+                    }
                     if(movingTiles.Count > 0)
                     {
                         nextTile.stonesOnTile.AddRange(movingTiles);
@@ -153,7 +168,7 @@ public class Board
                     if(thisTile.stonesOnTile.Count > 0)
                     {
                         thisTile.owner = thisTile.stonesOnTile.Last().stoneColor;
-                        thisTile.control = getTileControl(thisTile.stonesOnTile, out thisTile.road);
+                        thisTile.control = getTileControl(thisTile.stonesOnTile);
                     }
                     else
                     {
@@ -164,7 +179,7 @@ public class Board
                     if (nextTile.stonesOnTile.Count > 0)
                     {
                         nextTile.owner = nextTile.stonesOnTile.Last().stoneColor;
-                        nextTile.control = getTileControl(nextTile.stonesOnTile, out nextTile.road);
+                        nextTile.control = getTileControl(nextTile.stonesOnTile);
                     }
                     else
                     {
@@ -189,8 +204,8 @@ public class Board
                         thisTile.range = thisTile.stonesOnTile.Count;
                         nextTile.range = nextTile.stonesOnTile.Count;
 
-                        thisTile.boardPosition = target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist - 1)].boardPosition;
-                        nextTile.boardPosition = target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].boardPosition;
+                        thisTile.boardPosition = target.board[((int)Mathf.Clamp(move.getOriginX() + xDist, 0, GenBoard.getSize() - 1), (int)Mathf.Clamp(move.getOriginY() + yDist - 1, 0, GenBoard.getSize() - 1))].boardPosition;
+                        nextTile.boardPosition = target.board[((int)Mathf.Clamp(move.getOriginX() + xDist, 0, GenBoard.getSize() - 1), (int)Mathf.Clamp(move.getOriginY() + yDist, 0, GenBoard.getSize() - 1))].boardPosition;
                     }
                     else if(move.getDirection() == 'r')
                     {
@@ -209,8 +224,8 @@ public class Board
                         thisTile.range = thisTile.stonesOnTile.Count;
                         nextTile.range = nextTile.stonesOnTile.Count;
 
-                        thisTile.boardPosition = target.board[(move.getOriginX() + xDist - 1, move.getOriginY() + yDist)].boardPosition;
-                        nextTile.boardPosition = target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].boardPosition;
+                        thisTile.boardPosition = target.board[((int)Mathf.Clamp(move.getOriginX() + xDist - 1, 0, GenBoard.getSize() - 1), (int)Mathf.Clamp(move.getOriginY() + yDist, 0, GenBoard.getSize() - 1))].boardPosition;
+                        nextTile.boardPosition = target.board[((int)Mathf.Clamp(move.getOriginX() + xDist, 0, GenBoard.getSize() - 1), (int)Mathf.Clamp(move.getOriginY() + yDist, 0, GenBoard.getSize() - 1))].boardPosition;
                     }
                     else if (move.getDirection() == 'd')
                     {
@@ -229,8 +244,8 @@ public class Board
                         thisTile.range = thisTile.stonesOnTile.Count;
                         nextTile.range = nextTile.stonesOnTile.Count;
 
-                        thisTile.boardPosition = target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist + 1)].boardPosition;
-                        nextTile.boardPosition = target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].boardPosition;
+                        thisTile.boardPosition = target.board[((int)Mathf.Clamp(move.getOriginX() + xDist, 0, GenBoard.getSize() - 1), (int)Mathf.Clamp(move.getOriginY() + yDist + 1, 0, GenBoard.getSize() - 1))].boardPosition;
+                        nextTile.boardPosition = target.board[((int)Mathf.Clamp(move.getOriginX() + xDist, 0, GenBoard.getSize() - 1), (int)Mathf.Clamp(move.getOriginY() + yDist, 0, GenBoard.getSize() - 1))].boardPosition;
                     }
                     else
                     {
@@ -249,8 +264,9 @@ public class Board
                         thisTile.range = thisTile.stonesOnTile.Count;
                         nextTile.range = nextTile.stonesOnTile.Count;
 
-                        thisTile.boardPosition = target.board[(move.getOriginX() + xDist + 1, move.getOriginY() + yDist)].boardPosition;
-                        nextTile.boardPosition = target.board[(move.getOriginX() + xDist, move.getOriginY() + yDist)].boardPosition;
+
+                        thisTile.boardPosition = target.board[((int)Mathf.Clamp(move.getOriginX() + xDist + 1, 0, GenBoard.getSize() - 1), (int)Mathf.Clamp(move.getOriginY() + yDist, 0, GenBoard.getSize() - 1))].boardPosition;
+                        nextTile.boardPosition = target.board[((int)Mathf.Clamp(move.getOriginX() + xDist, 0, GenBoard.getSize() - 1), (int)Mathf.Clamp(move.getOriginY() + yDist, 0, GenBoard.getSize() - 1))].boardPosition;
                     }
 
                     target.board.Remove(((int)thisTile.boardPosition.x, (int)thisTile.boardPosition.y));
@@ -276,7 +292,7 @@ public class Board
             if(tile.Value.stonesOnTile.Count > 0)
             {
                 boardTile.owner = tile.Value.stonesOnTile.Last().stoneColor;
-                boardTile.control = getTileControl(tile.Value, out boardTile.road);
+                boardTile.control = getTileControl(tile.Value);
                 boardTile.range = tile.Value.stonesOnTile.Count;
                 foreach(Stone stone in  tile.Value.stonesOnTile)
                 {
@@ -424,14 +440,16 @@ public class Board
         {
             try
             {
-                if (board[(checkX, checkY)].owner == board[(checkX, checkY + 1)].owner)
+                if (board[(checkX, checkY)].owner == board[(checkX, checkY + 1)].owner && !board[(checkX, checkY)].stonesOnTile.Last().wall)
                 {
+                    board[(checkX, checkY)].road = true;
                     if (dist >= GenBoard.getSize() - 1)
                         win = board[(checkX, checkY)].owner;
                     return checkPath(checkX, checkY + 1, dist, dir);
                 }
                 else
                 {
+                    board[(checkX, checkY)].road = false;
                     dist--;
                     return dist;
                 }
@@ -446,16 +464,17 @@ public class Board
         {
             try
             {
-                if (board[(checkX, checkY)].owner == board[(checkX + 1, checkY)].owner)
+                if (board[(checkX, checkY)].owner == board[(checkX + 1, checkY)].owner && !board[(checkX, checkY)].stonesOnTile.Last().wall)
                 {
+                    board[(checkX, checkY)].road = true;
                     if (dist >= GenBoard.getSize() - 1)
                         win = board[(checkX, checkY)].owner;
                     return checkPath(checkX + 1, checkY, dist, dir);
                 }
                 else
                 {
-                    if (board[(checkX + 1, checkY)].stonesOnTile.Last().wall || board[(checkX + 1, checkY)].stonesOnTile.Last().cap)
-                        dist--;
+                    board[(checkX, checkY)].road = false;
+                    dist--;
                     return dist;
                 }
 
@@ -469,16 +488,17 @@ public class Board
         {
             try
             {
-                if (board[(checkX, checkY)].owner == board[(checkX, checkY - 1)].owner)
+                if (board[(checkX, checkY)].owner == board[(checkX, checkY - 1)].owner && !board[(checkX, checkY)].stonesOnTile.Last().wall)
                 {
+                    board[(checkX, checkY)].road = true;
                     if (dist >= GenBoard.getSize() - 1)
                         win = board[(checkX, checkY)].owner;
                     return checkPath(checkX, checkY - 1, dist, dir);
                 }
                 else
                 {
-                    if (board[(checkX, checkY - 1)].stonesOnTile.Last().wall || board[(checkX, checkY - 1)].stonesOnTile.Last().cap)
-                        dist--;
+                    board[(checkX, checkY)].road = false;
+                    dist--;
                     return dist;
                 }
 
@@ -492,16 +512,17 @@ public class Board
         {
             try
             {
-                if (board[(checkX, checkY)].owner == board[(checkX + 1, checkY)].owner)
+                if (board[(checkX, checkY)].owner == board[(checkX + 1, checkY)].owner && !board[(checkX, checkY)].stonesOnTile.Last().wall)
                 {
+                    board[(checkX, checkY)].road = true;
                     if (dist >= GenBoard.getSize() - 1)
                         win = board[(checkX, checkY)].owner;
                     return checkPath(checkX - 1, checkY, dist, dir);
                 }
                 else
                 {
-                    if (board[(checkX + 1, checkY)].stonesOnTile.Last().wall || board[(checkX + 1, checkY)].stonesOnTile.Last().cap)
-                        dist--;
+                    board[(checkX, checkY)].road = false;
+                    dist--;
                     return dist;
                 }
 
@@ -514,12 +535,11 @@ public class Board
         return dist;
     }
 
-    private static float getTileControl(Tile tile, out bool road)
+    private static float getTileControl(Tile tile)
     {
         float control = ((tile.getWhiteStonesOnTile() / tile.stonesOnTile.Count) * 0.4f) + 0.3f;
         if (tile.stonesOnTile.Last().cap)
         {
-            road = false;
             if (tile.stonesOnTile.Last().stoneColor == TileColor.White)
             {
                 control += 0.3f;
@@ -531,7 +551,6 @@ public class Board
         }
         else if (tile.stonesOnTile.Last().wall)
         {
-            road = false;
             if (tile.stonesOnTile.Last().stoneColor == TileColor.White)
             {
                 control += 0.2f;
@@ -541,15 +560,11 @@ public class Board
                 control -= 0.2f;
             }
         }
-        else
-        {
-            road = true;
-        }
 
         return control;
     }
 
-    private static float getTileControl(List<TempStone> stones, out bool road)
+    private static float getTileControl(List<TempStone> stones)
     {
         int whiteStonesOnTile = 0;
         foreach (TempStone stone in stones)
@@ -562,7 +577,6 @@ public class Board
         float control = ((whiteStonesOnTile / stones.Count) * 0.4f) + 0.3f;
         if (stones.Last().cap)
         {
-            road = false;
             if (stones.Last().stoneColor == TileColor.White)
             {
                 control += 0.3f;
@@ -574,7 +588,6 @@ public class Board
         }
         else if (stones.Last().wall)
         {
-            road = false;
             if (stones.Last().stoneColor == TileColor.White)
             {
                 control += 0.2f;
@@ -584,21 +597,16 @@ public class Board
                 control -= 0.2f;
             }
         }
-        else
-        {
-            road = true;
-        }
 
         return control;
     }
-    private static float getTileControl(int whiteStones, int blackStones, bool wall, bool cap, TileColor owner, out bool road)
+    private static float getTileControl(int whiteStones, int blackStones, bool wall, bool cap, TileColor owner)
     {
         float control = ((whiteStones / (whiteStones + blackStones)) * 0.4f) + 0.3f;
         if (whiteStones + blackStones == 0)
             control = 0.5f;
         if (cap)
         {
-            road = true;
             if (owner == TileColor.White)
             {
                 control += 0.3f;
@@ -610,7 +618,6 @@ public class Board
         }
         else if (wall)
         {
-            road = false;
             if (owner == TileColor.White)
             {
                 control += 0.2f;
@@ -619,10 +626,6 @@ public class Board
             {
                 control -= 0.2f;
             }
-        }
-        else
-        {
-            road = true;
         }
 
         return control;

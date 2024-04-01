@@ -8,13 +8,13 @@ using UnityEngine.UIElements;
 
 public class Strategy
 {
+    static Board current = new Board();
     public static float aggression = 0.5f; //a value between 0 and 1 to show whos on the defensive and whos on the offensive. used when compairing board states to decide what is actually better
                                    //if there is a move that lowers control but has a higher score the agression decides if its worth the risk
     public const float ADVANTAGE = 10f;
-    public const int DEPTH = 3;
+    public const int DEPTH = 1;
     public static Moves GetNextMove(Agent agent)
     {
-        Board current = new Board();
         Board.getCurrentBoard(current);
 
         fillTree(current, DEPTH, agent.agentColor);
@@ -99,10 +99,6 @@ public class Strategy
                     maxEval = eval;
                     outMove = child.saveMove;
                 }
-                if (maxEval == eval)
-                {
-                    outMove = child.saveMove;
-                }
                 alpha = Mathf.Max(alpha, eval);
                 if(beta <= alpha)
                 {
@@ -121,11 +117,6 @@ public class Strategy
             {
                 float eval = MiniMax(child, depth - 1, alpha, beta, true);
                 //minEval = Mathf.Min(minEval, eval);
-
-                if(child.saveMove.getOrigin() == Vector2.one)
-                {
-                    Debug.Log("stop");
-                }
 
                 if(eval < minEval)
                 {
@@ -192,22 +183,18 @@ public class Strategy
             return minEval;
         }
     }
+
+    //this part is still fucked i got nothin. truly nothin. Im searching correctly but I am lost on how to score a board
     public static float Score(Board board, bool maximizing)
     {
-        board.quantifyBoard();
-
-        if(board.saveMove.getOrigin() == new Vector2(2, 1) && board.saveMove.isMoveStone())
-        {
-            Debug.Log(board.saveMove.getDirection() + ", " +  board.saveMove.getDist());
-        }
-
         float score = 0;
         bool boost = true;
         if(maximizing)
             if(board.advantage == TileColor.White)
             {
                 aggression *= 1.25f;
-                if (board.root.proximity > board.proximity)
+                Mathf.Clamp(aggression, 0.1f, 0.9f);
+                if (current.proximity > board.proximity)
                     boost = true;
                 else
                     boost = false;
@@ -215,7 +202,8 @@ public class Strategy
             else if(board.advantage == TileColor.Black)
             {
                 aggression *= 0.75f;
-                if (board.root.proximity < board.proximity)
+                Mathf.Clamp(aggression, 0.1f, 0.9f);
+                if (current.proximity < board.proximity)
                     boost = true;
                 else
                     boost = false;
@@ -224,7 +212,8 @@ public class Strategy
             if (board.advantage == TileColor.White)
             {
                 aggression *= 0.75f;
-                if (board.root.proximity < board.proximity)
+                Mathf.Clamp(aggression, 0.1f, 0.9f);
+                if (current.proximity < board.proximity)
                     boost = true;
                 else
                     boost = false;
@@ -232,7 +221,8 @@ public class Strategy
             else if (board.advantage == TileColor.Black)
             {
                 aggression *= 1.25f;
-                if (board.root.proximity > board.proximity)
+                Mathf.Clamp(aggression, 0.1f, 0.9f);
+                if (current.proximity > board.proximity)
                     boost = true;
                 else
                     boost = false;
@@ -248,6 +238,7 @@ public class Strategy
         }
         else
         {
+            aggression = 0.5f;
             float position = (board.coverage * aggression) + (board.totalControl * (1 - aggression));
 
             score = (GenBoard.getSize() - board.proximity) + 5f;
