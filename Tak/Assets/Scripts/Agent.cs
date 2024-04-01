@@ -174,7 +174,7 @@ public class Agent : MonoBehaviour
                     try
                     {
 
-                        for (int i = 0; i <= nextMove.getDist(); i++)
+                        for (int i = 1; i <= nextMove.getDist(); i++)
                         {
                             if (nextMove.getDirection() == 'u')
                             {
@@ -183,7 +183,7 @@ public class Agent : MonoBehaviour
 
                                 selecter.transform.position = activeTile.transform.position + selecter.offset;
                                 selecter.selectedTile = activeTile;
-                                int abandonCount = nextMove.getAbandon();
+                                int abandonCount = i == 1 ? nextMove.getAbandon() : 0;
                                 foreach (Stone stone in selecter.selectedTile.stonesOnTile)
                                 {
                                     if(abandonCount > 0)
@@ -206,7 +206,7 @@ public class Agent : MonoBehaviour
 
                                 selecter.transform.position = activeTile.transform.position + selecter.offset;
                                 selecter.selectedTile = activeTile;
-                                int abandonCount = nextMove.getAbandon();
+                                int abandonCount = i == 1 ? nextMove.getAbandon() : 0;
                                 foreach (Stone stone in selecter.selectedTile.stonesOnTile)
                                 {
                                     if (abandonCount > 0)
@@ -229,7 +229,7 @@ public class Agent : MonoBehaviour
 
                                 selecter.transform.position = activeTile.transform.position + selecter.offset;
                                 selecter.selectedTile = activeTile;
-                                int abandonCount = nextMove.getAbandon();
+                                int abandonCount = i == 1 ? nextMove.getAbandon() : 0;
                                 foreach (Stone stone in selecter.selectedTile.stonesOnTile)
                                 {
                                     if (abandonCount > 0)
@@ -247,14 +247,12 @@ public class Agent : MonoBehaviour
                             }
                             else if (nextMove.getDirection() == 'l')
                             {
-                                //this part doesnt move tiles correctly
-
                                 Tile activeTile = GenBoard.instance.board[(nextMove.getOriginX() - progress, nextMove.getOriginY())];
                                 //Tile goalTile = GenBoard.instance.board[(moves[moveIndex].getOriginX() - i, moves[moveIndex].getOriginY())];
 
                                 selecter.transform.position = activeTile.transform.position + selecter.offset;
                                 selecter.selectedTile = activeTile;
-                                int abandonCount = nextMove.getAbandon();
+                                int abandonCount = i == 1 ? nextMove.getAbandon() : 0;
                                 foreach (Stone stone in selecter.selectedTile.stonesOnTile)
                                 {
                                     if (abandonCount > 0)

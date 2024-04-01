@@ -60,9 +60,7 @@ public class Board
     public static Board getNewBoard(Board baseBoard, Moves move)
     {
         Board newBoard = new Board(baseBoard);
-
         editBoard(newBoard, move);
-        newBoard.quantifyBoard();
         newBoard.root = baseBoard;
         newBoard.saveMove = move;
         baseBoard.children.Add(newBoard);
@@ -443,6 +441,7 @@ public class Board
                 if (board[(checkX, checkY)].owner == board[(checkX, checkY + 1)].owner && !board[(checkX, checkY)].stonesOnTile.Last().wall)
                 {
                     board[(checkX, checkY)].road = true;
+                    board[(checkX, checkY)].dir = dir;
                     if (dist >= GenBoard.getSize() - 1)
                         win = board[(checkX, checkY)].owner;
                     return checkPath(checkX, checkY + 1, dist, dir);
@@ -467,6 +466,7 @@ public class Board
                 if (board[(checkX, checkY)].owner == board[(checkX + 1, checkY)].owner && !board[(checkX, checkY)].stonesOnTile.Last().wall)
                 {
                     board[(checkX, checkY)].road = true;
+                    board[(checkX, checkY)].dir = dir;
                     if (dist >= GenBoard.getSize() - 1)
                         win = board[(checkX, checkY)].owner;
                     return checkPath(checkX + 1, checkY, dist, dir);
@@ -491,6 +491,7 @@ public class Board
                 if (board[(checkX, checkY)].owner == board[(checkX, checkY - 1)].owner && !board[(checkX, checkY)].stonesOnTile.Last().wall)
                 {
                     board[(checkX, checkY)].road = true;
+                    board[(checkX, checkY)].dir = dir;
                     if (dist >= GenBoard.getSize() - 1)
                         win = board[(checkX, checkY)].owner;
                     return checkPath(checkX, checkY - 1, dist, dir);

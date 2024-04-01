@@ -68,8 +68,11 @@ public class Strategy
     {
         List<Moves> moves = Agent.getMoves(board, turn);
 
+        List<float> placeList = new List<float>();
+
         foreach (Moves move in moves)
         {
+            float time;
             Board.getNewBoard(board, move);
         }
     }
@@ -184,6 +187,8 @@ public class Strategy
 
     public static float Score(Board board, bool maximizing)
     {
+        board.quantifyBoard();
+
         float score = 0;
         bool boost = true;
         if(maximizing)
@@ -235,7 +240,7 @@ public class Strategy
         }
         else
         {
-            aggression = 0.5f;
+            //aggression = 0.5f;
             float position = (board.coverage * aggression) + (board.totalControl * (1 - aggression));
 
             score = (GenBoard.getSize() - board.proximity) + 5f;
@@ -300,6 +305,34 @@ public class Strategy
                                 if (n.road)
                                 {
                                     score *= 1.1f;
+                                    if(n.dir == Direction.Up)
+                                    {
+                                        if (n.boardPosition.y < tile.Key.Item2)
+                                        {
+                                            score *= 1.5f;
+                                        }
+                                    }
+                                    else if (n.dir == Direction.Down)
+                                    {
+                                        if (n.boardPosition.y > tile.Key.Item2)
+                                        {
+                                            score *= 1.5f;
+                                        }
+                                    }
+                                    else if( n.dir == Direction.Left)
+                                    {
+                                        if (n.boardPosition.x < tile.Key.Item1)
+                                        {
+                                            score *= 1.5f;
+                                        }
+                                    }
+                                    else if(n.dir == Direction.Right)
+                                    {
+                                        if (n.boardPosition.x > tile.Key.Item1)
+                                        {
+                                            score *= 1.5f;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -325,6 +358,36 @@ public class Strategy
                                 if (n.road)
                                 {
                                     score *= 1.1f;
+                                    if (n.dir == Direction.Up)
+                                    {
+                                        Debug.Log(n.boardPosition + ", u");
+                                        if (n.boardPosition.y < tile.Value.boardPosition.y)
+                                        {
+                                            score *= 1.5f;
+                                        }
+                                    }
+                                    else if (n.dir == Direction.Down)
+                                    {
+                                        if (n.boardPosition.y > tile.Value.boardPosition.y)
+                                        {
+                                            score *= 1.5f;
+                                        }
+                                    }
+                                    else if (n.dir == Direction.Left)
+                                    {
+                                        Debug.Log(n.boardPosition);
+                                        if (n.boardPosition.x < tile.Value.boardPosition.x)
+                                        {
+                                            score *= 1.5f;
+                                        }
+                                    }
+                                    else if (n.dir == Direction.Right)
+                                    {
+                                        if (n.boardPosition.x > tile.Value.boardPosition.x)
+                                        {
+                                            score *= 1.5f;
+                                        }
+                                    }
                                 }
                             }
                         }
