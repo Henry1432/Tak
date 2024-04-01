@@ -94,42 +94,44 @@ public class Agent : MonoBehaviour
 
         if (check && (agentColor == GameController.instance.currentTurn))
         {
+            Moves nextMove = Strategy.GetNextMove(this);
+            check = false;
             moves.Clear();
 
             //System.DateTime timeTest = System.DateTime.Now;
 
-            moves = getMoves();
+            /*moves = getMoves();
             check = false;
 
             int moveIndex = UnityEngine.Random.Range(0, moves.Count - 1);
 
             if (!GameController.canWall())
             {
-                while (moves[moveIndex].isMoveStone())
+                while (nextMove.isMoveStone())
                 {
                     moveIndex = UnityEngine.Random.Range(0, moves.Count - 1);
                 }
-            }
+            }*/
 
-            if (moves[moveIndex] != null)
+            if (nextMove != null)
             {
-                if (moves[moveIndex].isPlaceStone())
+                if (nextMove.isPlaceStone())
                 {
-                    if (moves[moveIndex].getPlaceStone() == 'w' || moves[moveIndex].getPlaceStone() == 'b')
+                    if (nextMove.getPlaceStone() == 'w' || nextMove.getPlaceStone() == 'b')
                     {
                         Stone stone;
                         if (!GameController.canWall())
                         {
-                            stone = epsc.PlaceNextStone(moves[moveIndex].getOrigin());
+                            stone = epsc.PlaceNextStone(nextMove.getOrigin());
                         }
                         else
                         {
-                            stone = psc.PlaceNextStone(moves[moveIndex].getOrigin());
+                            stone = psc.PlaceNextStone(nextMove.getOrigin());
                         }
 
-                        stone.currentTile = GenBoard.instance.board[(moves[moveIndex].getOriginX(), moves[moveIndex].getOriginY())];
+                        stone.currentTile = GenBoard.instance.board[(nextMove.getOriginX(), nextMove.getOriginY())];
                         stone.transform.position = new Vector3(stone.currentTile.transform.position.x, stone.currentTile.transform.position.y, transform.position.z);
-                        stone.wall = moves[moveIndex].getWall() == 't' ? true : false;
+                        stone.wall = nextMove.getWall() == 't' ? true : false;
                         GenBoard.instance.board[(stone.currentTile.boardPosition.x, stone.currentTile.boardPosition.y)].stonesOnTile.Add(stone);
                         stone.onTile = true;
                         stone.placed = true;
@@ -137,14 +139,14 @@ public class Agent : MonoBehaviour
 
                         stone.gameObject.SetActive(true);
                     }
-                    else if ((moves[moveIndex].getPlaceStone() == 'W' || moves[moveIndex].getPlaceStone() == 'B'))
+                    else if ((nextMove.getPlaceStone() == 'W' || nextMove.getPlaceStone() == 'B'))
                     {
                         if(!GameController.canWall())
                         {
-                            Stone stone = epsc.PlaceNextStone(moves[moveIndex].getOrigin());
-                            stone.currentTile = GenBoard.instance.board[(moves[moveIndex].getOriginX(), moves[moveIndex].getOriginY())];
+                            Stone stone = epsc.PlaceNextStone(nextMove.getOrigin());
+                            stone.currentTile = GenBoard.instance.board[(nextMove.getOriginX(), nextMove.getOriginY())];
                             stone.transform.position = new Vector3(stone.currentTile.transform.position.x, stone.currentTile.transform.position.y, transform.position.z);
-                            stone.wall = moves[moveIndex].getWall() == 't' ? true : false;
+                            stone.wall = nextMove.getWall() == 't' ? true : false;
                             GenBoard.instance.board[(stone.currentTile.boardPosition.x, stone.currentTile.boardPosition.y)].stonesOnTile.Add(stone);
                             stone.onTile = true;
                             stone.placed = true;
@@ -152,7 +154,7 @@ public class Agent : MonoBehaviour
                         }
                         else
                         {
-                            Capstone.currentTile = GenBoard.instance.board[(moves[moveIndex].getOriginX(), moves[moveIndex].getOriginY())];
+                            Capstone.currentTile = GenBoard.instance.board[(nextMove.getOriginX(), nextMove.getOriginY())];
                             Capstone.transform.position = new Vector3(Capstone.currentTile.transform.position.x, Capstone.currentTile.transform.position.y, transform.position.z);
                             GenBoard.instance.board[(Capstone.currentTile.boardPosition.x, Capstone.currentTile.boardPosition.y)].stonesOnTile.Add(Capstone);
                             Capstone.onTile = true;
@@ -165,23 +167,23 @@ public class Agent : MonoBehaviour
                     }
                     GameController.placeStone();
                 }
-                else if (moves[moveIndex].isMoveStone())
+                else if (nextMove.isMoveStone())
                 {
                     int progress = 0;
                     Selecter selecter = GameObject.FindObjectOfType<Selecter>();
                     try
                     {
 
-                        for (int i = 1; i <= moves[moveIndex].getDist(); i++)
+                        for (int i = 0; i <= nextMove.getDist(); i++)
                         {
-                            if (moves[moveIndex].getDirection() == 'u')
+                            if (nextMove.getDirection() == 'u')
                             {
-                                Tile activeTile = GenBoard.instance.board[(moves[moveIndex].getOriginX(), moves[moveIndex].getOriginY() + progress)];
+                                Tile activeTile = GenBoard.instance.board[(nextMove.getOriginX(), nextMove.getOriginY() + progress)];
                                 //Tile goalTile = GenBoard.instance.board[(moves[moveIndex].getOriginX(), moves[moveIndex].getOriginY() + i)];
 
                                 selecter.transform.position = activeTile.transform.position + selecter.offset;
                                 selecter.selectedTile = activeTile;
-                                int abandonCount = moves[moveIndex].getAbandon();
+                                int abandonCount = nextMove.getAbandon();
                                 foreach (Stone stone in selecter.selectedTile.stonesOnTile)
                                 {
                                     if(abandonCount > 0)
@@ -197,16 +199,21 @@ public class Agent : MonoBehaviour
 
                                 selecter.MoveStones(Direction.Up);
                             }
-                            else if (moves[moveIndex].getDirection() == 'r')
+                            else if (nextMove.getDirection() == 'r')
                             {
-                                Tile activeTile = GenBoard.instance.board[(moves[moveIndex].getOriginX() + progress, moves[moveIndex].getOriginY() )];
+                                Tile activeTile = GenBoard.instance.board[(nextMove.getOriginX() + progress, nextMove.getOriginY() )];
                                 //Tile goalTile = GenBoard.instance.board[(moves[moveIndex].getOriginX() + i, moves[moveIndex].getOriginY())];
 
                                 selecter.transform.position = activeTile.transform.position + selecter.offset;
                                 selecter.selectedTile = activeTile;
-
+                                int abandonCount = nextMove.getAbandon();
                                 foreach (Stone stone in selecter.selectedTile.stonesOnTile)
                                 {
+                                    if (abandonCount > 0)
+                                    {
+                                        selecter.leaveStones.Add(stone);
+                                        abandonCount--;
+                                    }
                                     if (!selecter.leaveStones.Contains(stone) && !selecter.movingStones.Contains(stone))
                                     {
                                         selecter.movingStones.Add(stone);
@@ -215,16 +222,21 @@ public class Agent : MonoBehaviour
 
                                 selecter.MoveStones(Direction.Right);
                             }
-                            else if (moves[moveIndex].getDirection() == 'd')
+                            else if (nextMove.getDirection() == 'd')
                             {
-                                Tile activeTile = GenBoard.instance.board[(moves[moveIndex].getOriginX(), moves[moveIndex].getOriginY() - progress)];
+                                Tile activeTile = GenBoard.instance.board[(nextMove.getOriginX(), nextMove.getOriginY() - progress)];
                                 //Tile goalTile = GenBoard.instance.board[(moves[moveIndex].getOriginX(), moves[moveIndex].getOriginY() - i)];
 
                                 selecter.transform.position = activeTile.transform.position + selecter.offset;
                                 selecter.selectedTile = activeTile;
-
+                                int abandonCount = nextMove.getAbandon();
                                 foreach (Stone stone in selecter.selectedTile.stonesOnTile)
                                 {
+                                    if (abandonCount > 0)
+                                    {
+                                        selecter.leaveStones.Add(stone);
+                                        abandonCount--;
+                                    }
                                     if (!selecter.leaveStones.Contains(stone) && !selecter.movingStones.Contains(stone))
                                     {
                                         selecter.movingStones.Add(stone);
@@ -233,16 +245,23 @@ public class Agent : MonoBehaviour
 
                                 selecter.MoveStones(Direction.Down);
                             }
-                            else if (moves[moveIndex].getDirection() == 'l')
+                            else if (nextMove.getDirection() == 'l')
                             {
-                                Tile activeTile = GenBoard.instance.board[(moves[moveIndex].getOriginX() - progress, moves[moveIndex].getOriginY())];
+                                //this part doesnt move tiles correctly
+
+                                Tile activeTile = GenBoard.instance.board[(nextMove.getOriginX() - progress, nextMove.getOriginY())];
                                 //Tile goalTile = GenBoard.instance.board[(moves[moveIndex].getOriginX() - i, moves[moveIndex].getOriginY())];
 
                                 selecter.transform.position = activeTile.transform.position + selecter.offset;
                                 selecter.selectedTile = activeTile;
-
+                                int abandonCount = nextMove.getAbandon();
                                 foreach (Stone stone in selecter.selectedTile.stonesOnTile)
                                 {
+                                    if (abandonCount > 0)
+                                    {
+                                        selecter.leaveStones.Add(stone);
+                                        abandonCount--;
+                                    }
                                     if (!selecter.leaveStones.Contains(stone) && !selecter.movingStones.Contains(stone))
                                     {
                                         selecter.movingStones.Add(stone);

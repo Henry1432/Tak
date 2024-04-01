@@ -14,7 +14,7 @@ public class Strategy
     public static float aggression = 0.5f; //a value between 0 and 1 to show whos on the defensive and whos on the offensive. used when compairing board states to decide what is actually better
                                    //if there is a move that lowers control but has a higher score the agression decides if its worth the risk
     public const float ADVANTAGE = 10f;
-    public const int DEPTH = 3;
+    public const int DEPTH = 2;
     public static Moves GetNextMove(Agent agent)
     {
         current = new Board();
@@ -182,7 +182,6 @@ public class Strategy
         }
     }
 
-    //this part is still fucked i got nothin. truly nothin. Im searching correctly but I am lost on how to score a board
     public static float Score(Board board, bool maximizing)
     {
         float score = 0;
