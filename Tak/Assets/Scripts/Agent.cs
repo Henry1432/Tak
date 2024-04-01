@@ -54,10 +54,10 @@ public class Agent : MonoBehaviour
         if(test)
         {
             test = false;
-            TestBoard = new Board();
+            //TestBoard = new Board();
             DateTime save = DateTime.Now;
-            Board.getCurrentBoard(TestBoard);
-            TestBoard.quantifyBoard();
+            //Board.getCurrentBoard(TestBoard);
+            //TestBoard.quantifyBoard();
 
             /*
             moves.Clear();
@@ -81,7 +81,15 @@ public class Agent : MonoBehaviour
             Moves move = Strategy.GetNextMove(this);
 
             Debug.Log(DateTime.Now - save);
-            Debug.Log(move.getOrigin() + ", " + move.isPlaceStone() + ", " + move.isMoveStone() );
+
+            if(move.isPlaceStone())
+            {
+                Debug.Log(move.getOrigin() + ", isWall: " + move.isWall() + ", isCapstone: " + move.isCapstone());
+            }
+            else
+            {
+                Debug.Log(move.getOrigin() + ", Direction: " + move.getDirection() + ", Distance: " + move.getDist() + ", Abandon: " + move.getAbandon());
+            }
         }
 
         if (check && (agentColor == GameController.instance.currentTurn))

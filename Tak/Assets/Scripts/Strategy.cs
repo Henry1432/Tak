@@ -1,10 +1,12 @@
 using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using static Unity.Collections.AllocatorManager;
 
 public class Strategy
 {
@@ -12,9 +14,10 @@ public class Strategy
     public static float aggression = 0.5f; //a value between 0 and 1 to show whos on the defensive and whos on the offensive. used when compairing board states to decide what is actually better
                                    //if there is a move that lowers control but has a higher score the agression decides if its worth the risk
     public const float ADVANTAGE = 10f;
-    public const int DEPTH = 1;
+    public const int DEPTH = 3;
     public static Moves GetNextMove(Agent agent)
     {
+        current = new Board();
         Board.getCurrentBoard(current);
 
         fillTree(current, DEPTH, agent.agentColor);
@@ -67,12 +70,7 @@ public class Strategy
 
         foreach (Moves move in moves)
         {
-            if(!move.isPlaceStone())
-            {
-                Board.getNewBoard(board, move);
-            }
-            else
-                Board.getNewBoard(board, move);
+            Board.getNewBoard(board, move);
         }
     }
 
@@ -258,6 +256,82 @@ public class Strategy
             }
 
             score *= 1 + position;
+
+            List<BoardTile> neighbors = new List<BoardTile>();
+            foreach(KeyValuePair<(int, int), BoardTile> tile in board.board)
+            {
+                neighbors.Clear();
+                if(tile.Key.Item1 > 0)
+                {
+                    neighbors.Add(board.board[(tile.Key.Item1 - 1, tile.Key.Item2)]);
+                }
+                if (tile.Key.Item1 < GenBoard.getSize()-1)
+                {
+                    neighbors.Add(board.board[(tile.Key.Item1 + 1, tile.Key.Item2)]);
+                }
+                if (tile.Key.Item2 > 0)
+                {
+                    neighbors.Add(board.board[(tile.Key.Item1, tile.Key.Item2 - 1)]);
+                }
+                if (tile.Key.Item2 < GenBoard.getSize() - 1)
+                {
+                    neighbors.Add(board.board[(tile.Key.Item1, tile.Key.Item2 + 1)]);
+                }
+
+                foreach(BoardTile n in neighbors)
+                {
+                    if(maximizing)
+                    {
+                        if(tile.Value.owner == TileColor.White)
+                        {
+                            if(n.owner == TileColor.White)
+                            {
+                                score *= 1.2f;
+                                if(n.road)
+                                {
+                                    score *= 1.2f;
+                                }
+                            }
+                            else if(n.owner == TileColor.Black)
+                            {
+                                if(n.stonesOnTile.Last().wall)
+                                {
+                                    score /= 1.2f;
+                                }
+                                if (n.road)
+                                {
+                                    score *= 1.1f;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (tile.Value.owner == TileColor.Black)
+                        {
+                            if (n.owner == TileColor.Black)
+                            {
+                                score *= 1.2f;
+                                if (n.road)
+                                {
+                                    score *= 1.2f;
+                                }
+                            }
+                            else if (n.owner == TileColor.White)
+                            {
+                                if (n.stonesOnTile.Last().wall)
+                                {
+                                    score /= 1.2f;
+                                }
+                                if (n.road)
+                                {
+                                    score *= 1.1f;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
 
