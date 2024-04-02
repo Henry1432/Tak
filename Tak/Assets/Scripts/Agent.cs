@@ -96,7 +96,7 @@ public class Agent : MonoBehaviour
         {
             Moves nextMove = Strategy.GetNextMove(this);
             check = false;
-            moves.Clear();
+            //moves.Clear();
 
             //System.DateTime timeTest = System.DateTime.Now;
 
