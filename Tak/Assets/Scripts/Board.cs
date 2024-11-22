@@ -431,6 +431,12 @@ public class Board
         }
     }
 
+    private void checkPath()
+    {
+        //currently this is a recursive board shifting pile of bs, this can be inproved to a list of neighbor groups, an unordered list of unordered maps that can be checked against
+            //add some handling funcitons like win state count and neighbor group count. run checkPath at top of quantify board and check the info it got throughout quantification
+    }
+
     private int checkPath(int checkX, int checkY, int dist, Direction dir)
     {
         dist++;

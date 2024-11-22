@@ -78,7 +78,7 @@ public class Agent : MonoBehaviour
                 Debug.Log("sUcc");
             */
 
-            Moves move = Strategy.GetNextMove(this);
+            Moves move = MiniMaxStrategy.GetNextMove(this);
 
             Debug.Log(DateTime.Now - save);
 
@@ -94,7 +94,7 @@ public class Agent : MonoBehaviour
 
         if (check && (agentColor == GameController.instance.currentTurn))
         {
-            Moves nextMove = Strategy.GetNextMove(this);
+            Moves nextMove = MiniMaxStrategy.GetNextMove(this);
             check = false;
             //moves.Clear();
 

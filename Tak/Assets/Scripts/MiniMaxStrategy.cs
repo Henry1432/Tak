@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using static Unity.Collections.AllocatorManager;
 
-public class Strategy
+public class MiniMaxStrategy
 {
     static Board current = new Board();
     public static float aggression = 0.5f; //a value between 0 and 1 to show whos on the defensive and whos on the offensive. used when compairing board states to decide what is actually better
