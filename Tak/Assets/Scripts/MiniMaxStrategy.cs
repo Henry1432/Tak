@@ -17,8 +17,7 @@ public class MiniMaxStrategy
     public const int DEPTH = 2;
     public static Moves GetNextMove(Agent agent)
     {
-        current = new Board();
-        Board.getCurrentBoard(current);
+        Board.getCurrentBoard(out current);
 
         fillTree(current, DEPTH, agent.agentColor);
 
@@ -185,6 +184,7 @@ public class MiniMaxStrategy
         }
     }
 
+    //modify to work with new winstate situation
     public static float Score(Board board, bool maximizing)
     {
         board.quantifyBoard();

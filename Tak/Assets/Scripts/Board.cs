@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
+using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
 using UnityEngine.AI;
 using static UnityEngine.GraphicsBuffer;
@@ -36,6 +37,8 @@ public class Board
 
     public Moves saveMove;
     public float SaveScore;
+
+    private Dictionary<int, List<BoardTile>> neighborGroups = null;
     public Board()
     {
         board = new Dictionary<(int, int), BoardTile>();
@@ -276,8 +279,9 @@ public class Board
         }
     }
 
-    public static void getCurrentBoard(Board target)
+    public static void getCurrentBoard(out Board target)
     {
+        target = new Board();
         if(target.board == null)
         {
             target.board = new Dictionary<(int, int), BoardTile> ();
@@ -322,8 +326,10 @@ public class Board
 
         //target.quantifyBoard();
         target.root = target;
+        target = target;
     }
 
+    //work with new check board situation
     public void quantifyBoard()
     {
         proximity = Mathf.Infinity;
@@ -431,11 +437,185 @@ public class Board
         }
     }
 
-    private void checkPath()
+    public void checkPath()
     {
         //currently this is a recursive board shifting pile of bs, this can be inproved to a list of neighbor groups, an unordered list of unordered maps that can be checked against
-            //add some handling funcitons like win state count and neighbor group count. run checkPath at top of quantify board and check the info it got throughout quantification
+        //add some handling funcitons like win state count and neighbor group count. run checkPath at top of quantify board and check the info it got throughout quantification
+
+        if(neighborGroups == null) neighborGroups = new Dictionary<int, List<BoardTile>>();
+        else neighborGroups.Clear();
+        int currentGroup = 0;
+
+        //add possible tiles
+        for(int x = 0; x < GenBoard.getSize(); x++)
+        {
+            if (board[(x, 0)].owner != TileColor.None && addNeighbor(board[(x, 0)]))
+            {
+                Stack<BoardTile> frontier = new Stack<BoardTile>();
+                searchNeighbors(board[(x, 0)], currentGroup, frontier); //recursivly search forNeighbors of start color
+                currentGroup++;
+            }
+            if (board[(x, (int)GenBoard.getSize()-1)].owner != TileColor.None && addNeighbor(board[(x, (int)GenBoard.getSize() - 1)]))
+            {
+                Stack<BoardTile> frontier = new Stack<BoardTile>();
+                searchNeighbors(board[(x, (int)GenBoard.getSize() - 1)], currentGroup, frontier); //recursivly search forNeighbors of start color
+                currentGroup++;
+            }
+        }
+        for (int y = 1; y < GenBoard.getSize()-1; y++)
+        {
+            if (board[(0, y)].owner != TileColor.None && addNeighbor(board[(0, y)]))
+            {
+                Stack<BoardTile> frontier = new Stack<BoardTile>();
+                searchNeighbors(board[(0, y)], currentGroup, frontier); //recursivly search forNeighbors of start color
+                currentGroup++;
+            }
+            if (board[((int)GenBoard.getSize() - 1, y)].owner != TileColor.None && addNeighbor(board[((int)GenBoard.getSize() - 1, y)]))
+            {
+                Stack<BoardTile> frontier = new Stack<BoardTile>();
+                searchNeighbors(board[((int)GenBoard.getSize() - 1, y)], currentGroup, frontier); //recursivly search forNeighbors of start color
+                currentGroup++;
+            }
+        }
+
     }
+
+    private void searchNeighbors(BoardTile target, int group, Stack<BoardTile> frontier)
+    {
+        //ifthere is a neighbor to the left that isnt already in the fronteir add it to the frontier
+        if (target.boardPosition.x > 0)
+        {
+            BoardTile left = board[((int)target.boardPosition.x - 1, (int)target.boardPosition.y)];
+            if ((addNeighbor(left, frontier, target.owner))) frontier.Push(left);
+        }
+        if (target.boardPosition.x < GenBoard.getSize()-1)
+        {
+            BoardTile right = board[((int)target.boardPosition.x + 1, (int)target.boardPosition.y)];
+            if ((addNeighbor(right, frontier, target.owner))) frontier.Push(right);
+        }
+        if (target.boardPosition.y > 0)
+        {
+            BoardTile down = board[((int)target.boardPosition.x, (int)target.boardPosition.y - 1)];
+            if ((addNeighbor(down, frontier, target.owner))) frontier.Push(down);
+        }
+        if (target.boardPosition.y < GenBoard.getSize()-1)
+        {
+            BoardTile up = board[((int)target.boardPosition.x, (int)target.boardPosition.y + 1)];
+            if ((addNeighbor(up, frontier, target.owner))) frontier.Push(up);
+        }
+        
+        if(!neighborGroups.ContainsKey(group))
+        {
+            neighborGroups.Add(group, new List<BoardTile>());
+        }
+        neighborGroups[group].Add(target);
+
+        if (frontier.Count > 0)
+        {
+            BoardTile newTarget = frontier.Pop();
+            searchNeighbors(newTarget, group, frontier);
+        }
+    }
+
+    private bool addNeighbor(BoardTile target, Stack<BoardTile> frontier, TileColor color)
+    {
+        foreach (var item in neighborGroups)
+        {
+            if(item.Value.Contains(target))
+                return false;
+        }
+
+        if(frontier.Contains(board[((int)target.boardPosition.x, (int)target.boardPosition.y)]))
+        {
+            return false;
+        }
+
+        if(target.owner != color) return false;
+
+        return true;
+    }
+
+    private bool addNeighbor(BoardTile target)
+    {
+        foreach (var group in neighborGroups)
+        {
+            if (group.Value.Contains(target))
+                return false;
+        }
+
+        return true;
+    }
+
+    //take the path closest to winning
+    public void winState(out int winDist, out int pathCount, out TileColor winning, out bool hasWinner)
+    {
+        if(neighborGroups.Count > 0)
+        {
+            Dictionary<int, int> groupWinDist = new Dictionary<int, int>();
+            foreach(var group in neighborGroups)
+            {
+                int lowestX = int.MaxValue, highestX = int.MinValue;
+                int lowestY = int.MaxValue, highestY = int.MinValue;
+
+                foreach(BoardTile tile in group.Value)
+                {
+                    if(tile.boardPosition.x < lowestX)
+                    {
+                        lowestX = (int)tile.boardPosition.x;
+                    }
+                    if(tile.boardPosition.x > highestX)
+                    {
+                        highestX = (int)tile.boardPosition.x;
+                    }
+
+                    if (tile.boardPosition.y < lowestY)
+                    {
+                        lowestY = (int)tile.boardPosition.y;
+                    }
+                    if (tile.boardPosition.y > highestY)
+                    {
+                        highestY = (int)tile.boardPosition.y;
+                    }
+                }
+                int pathSizeX = (highestX - lowestX);
+                int pathSizeY = (highestY - lowestY);
+                int pathSize = pathSizeX > pathSizeY ? pathSizeX : pathSizeY;
+                int getWinDist = ((int)GenBoard.getSize()-1) - pathSize;
+                groupWinDist.Add(group.Key, getWinDist);
+            }
+
+            var orderedWinDist = groupWinDist.OrderBy(group => group.Value).ToList();
+
+            if (orderedWinDist.First().Value == 0)
+            {
+                hasWinner = true;
+            }
+            else
+                hasWinner = false;
+
+            if(orderedWinDist.Count > 1)
+            {
+                if (orderedWinDist[0].Value != (orderedWinDist[1]).Value)
+                    winning = neighborGroups[orderedWinDist.First().Key].First().owner;
+                else
+                    winning = TileColor.None;
+            }
+            else
+                winning = neighborGroups[orderedWinDist.First().Key].First().owner;
+
+            pathCount = neighborGroups.Count;
+
+            winDist = orderedWinDist.First().Value;
+        }
+        else
+        {
+            winDist = -1;
+            pathCount = -1;
+            winning = TileColor.None;
+            hasWinner = false;
+        }
+    }
+
 
     private int checkPath(int checkX, int checkY, int dist, Direction dir)
     {
