@@ -335,97 +335,15 @@ public class Board
         proximity = Mathf.Infinity;
         advantage = TileColor.None;
 
-        int whiteRoadCount = 0;
-        int blackRoadCount = 0;
-        int totalPoxi = 0;
+        int winDist, whitePathCount, blackPathCount;
+        TileColor winning;
+        bool hasWinner;
 
-        int edge = (int)(GenBoard.getSize() - 1);
-        List<int> poxi = new List<int>();
-        for (int i = 0; i < GenBoard.getSize(); i++)
-        {
-            if (board[(0, i)].owner != TileColor.None)
-            {
-                int tempProx = (int)GenBoard.getSize() - checkPath(0, i, 0, Direction.Right);
-                if (tempProx != (int)GenBoard.getSize())
-                {
-                    if (board[(0, i)].owner == TileColor.White)
-                        whiteRoadCount++;
-                    else
-                        blackRoadCount++;
+        checkPath();
+        winState(out winDist, out whitePathCount, out blackPathCount, out winning, out hasWinner);
 
-                    if (tempProx < proximity)
-                    {
-                        proximity = tempProx;
-                    }
-
-                    totalPoxi += tempProx;
-                    poxi.Add(tempProx);
-                }
-            }
-
-            if (board[(i, edge)].owner != TileColor.None)
-            {
-                int tempProx = (int)GenBoard.getSize() - checkPath(i, edge, 0, Direction.Down);
-                if (tempProx != (int)GenBoard.getSize())
-                {
-                    if (board[(i, edge)].owner == TileColor.White)
-                        whiteRoadCount++;
-                    else
-                        blackRoadCount++;
-
-                    if (tempProx < proximity)
-                    {
-                        proximity = tempProx;
-                    }
-
-                    totalPoxi += tempProx;
-                    poxi.Add(tempProx);
-                }
-            }
-
-            if (board[(edge, edge - i)].owner != TileColor.None)
-            {
-                int tempProx = (int)GenBoard.getSize() - checkPath(edge, edge - i, 0, Direction.Left);
-                if (tempProx != (int)GenBoard.getSize())
-                {
-                    if (board[(edge, edge - i)].owner == TileColor.White)
-                        whiteRoadCount++;
-                    else
-                        blackRoadCount++;
-
-                    if (tempProx < proximity)
-                    {
-                        proximity = tempProx;
-                    }
-
-                    totalPoxi += tempProx;
-                    poxi.Add(tempProx);
-                }
-            }
-
-            if (board[(i, 0)].owner != TileColor.None)
-            {
-                int tempProx = (int)GenBoard.getSize() - checkPath(i, 0, 0, Direction.Up);
-                if (tempProx != (int)GenBoard.getSize())
-                {
-                    if (board[(i, 0)].owner == TileColor.White)
-                        whiteRoadCount++;
-                    else
-                        blackRoadCount++;
-
-                    if (tempProx < proximity)
-                    {
-                        proximity = tempProx;
-                    }
-
-                    totalPoxi += tempProx;
-                    poxi.Add(tempProx);
-                }
-            }
-        }
-
-        float totalRoadCount = whiteRoadCount + blackRoadCount;
-        float position = (totalControl + coverage + (whiteRoadCount/totalRoadCount)) / 2;
+        float totalRoadCount = whitePathCount + blackPathCount;
+        float position = ((totalControl + coverage + (whitePathCount / totalRoadCount)) / 2) * (winning == TileColor.White ? 1.2f : 0.8f);
         advantage = TileColor.None;
         if(position > 0.5f)
         {
@@ -434,6 +352,11 @@ public class Board
         else if(position < 0.5f)
         {
             advantage = TileColor.Black;
+        }
+
+        if(hasWinner)
+        {
+            //make this tell agents to stop
         }
     }
 
@@ -547,8 +470,9 @@ public class Board
     }
 
     //take the path closest to winning
-    public void winState(out int winDist, out int pathCount, out TileColor winning, out bool hasWinner)
+    public void winState(out int winDist, out int whitePathCount, out int blackPathCount, out TileColor winning, out bool hasWinner)
     {
+        whitePathCount = 0; blackPathCount = 0;
         if(neighborGroups.Count > 0)
         {
             Dictionary<int, int> groupWinDist = new Dictionary<int, int>();
@@ -582,6 +506,14 @@ public class Board
                 int pathSize = pathSizeX > pathSizeY ? pathSizeX : pathSizeY;
                 int getWinDist = ((int)GenBoard.getSize()-1) - pathSize;
                 groupWinDist.Add(group.Key, getWinDist);
+                if(group.Value.First().owner == TileColor.White)
+                {
+                    whitePathCount += 1;
+                }
+                else if (group.Value.First().owner == TileColor.Black)
+                {
+                    blackPathCount += 1;
+                }
             }
 
             var orderedWinDist = groupWinDist.OrderBy(group => group.Value).ToList();
@@ -603,123 +535,16 @@ public class Board
             else
                 winning = neighborGroups[orderedWinDist.First().Key].First().owner;
 
-            pathCount = neighborGroups.Count;
-
             winDist = orderedWinDist.First().Value;
         }
         else
         {
             winDist = -1;
-            pathCount = -1;
+            whitePathCount = -1;
+            blackPathCount = -1;
             winning = TileColor.None;
             hasWinner = false;
         }
-    }
-
-
-    private int checkPath(int checkX, int checkY, int dist, Direction dir)
-    {
-        dist++;
-        if (dir == Direction.Up)
-        {
-            try
-            {
-                if (board[(checkX, checkY)].owner == board[(checkX, checkY + 1)].owner && !board[(checkX, checkY)].stonesOnTile.Last().wall)
-                {
-                    board[(checkX, checkY)].road = true;
-                    board[(checkX, checkY)].dir = dir;
-                    if (dist >= GenBoard.getSize() - 1)
-                        win = board[(checkX, checkY)].owner;
-                    return checkPath(checkX, checkY + 1, dist, dir);
-                }
-                else
-                {
-                    board[(checkX, checkY)].road = false;
-                    dist--;
-                    return dist;
-                }
-
-            }
-            catch
-            {
-                return dist;
-            }
-        }
-        else if (dir == Direction.Right)
-        {
-            try
-            {
-                if (board[(checkX, checkY)].owner == board[(checkX + 1, checkY)].owner && !board[(checkX, checkY)].stonesOnTile.Last().wall)
-                {
-                    board[(checkX, checkY)].road = true;
-                    board[(checkX, checkY)].dir = dir;
-                    if (dist >= GenBoard.getSize() - 1)
-                        win = board[(checkX, checkY)].owner;
-                    return checkPath(checkX + 1, checkY, dist, dir);
-                }
-                else
-                {
-                    board[(checkX, checkY)].road = false;
-                    dist--;
-                    return dist;
-                }
-
-            }
-            catch
-            {
-                return dist;
-            }
-        }
-        else if (dir == Direction.Down)
-        {
-            try
-            {
-                if (board[(checkX, checkY)].owner == board[(checkX, checkY - 1)].owner && !board[(checkX, checkY)].stonesOnTile.Last().wall)
-                {
-                    board[(checkX, checkY)].road = true;
-                    board[(checkX, checkY)].dir = dir;
-                    if (dist >= GenBoard.getSize() - 1)
-                        win = board[(checkX, checkY)].owner;
-                    return checkPath(checkX, checkY - 1, dist, dir);
-                }
-                else
-                {
-                    board[(checkX, checkY)].road = false;
-                    dist--;
-                    return dist;
-                }
-
-            }
-            catch
-            {
-                return dist;
-            }
-        }
-        else if (dir == Direction.Left)
-        {
-            try
-            {
-                if (board[(checkX, checkY)].owner == board[(checkX + 1, checkY)].owner && !board[(checkX, checkY)].stonesOnTile.Last().wall)
-                {
-                    board[(checkX, checkY)].road = true;
-                    if (dist >= GenBoard.getSize() - 1)
-                        win = board[(checkX, checkY)].owner;
-                    return checkPath(checkX - 1, checkY, dist, dir);
-                }
-                else
-                {
-                    board[(checkX, checkY)].road = false;
-                    dist--;
-                    return dist;
-                }
-
-            }
-            catch
-            {
-                return dist;
-            }
-        }
-        return dist;
     }
 
     private static float getTileControl(Tile tile)

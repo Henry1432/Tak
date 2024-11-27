@@ -7,7 +7,8 @@ public class TestBoardWin : MonoBehaviour
     public Board currentBoard;
     public bool check = false;
     public int winDist;
-    public int pathCount;
+    public int whitePathCount;
+    public int blackPathCount;
     public TileColor winning;
     public bool hasWinner;
 
@@ -19,7 +20,7 @@ public class TestBoardWin : MonoBehaviour
         {
             check = false;
             currentBoard.checkPath();
-            currentBoard.winState(out winDist, out pathCount, out winning, out hasWinner);
+            currentBoard.winState(out winDist, out whitePathCount, out blackPathCount, out winning, out hasWinner);
         }
     }
 }
