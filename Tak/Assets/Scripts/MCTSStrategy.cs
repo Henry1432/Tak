@@ -4,23 +4,188 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using System.Linq;
+
 using static Unity.Collections.AllocatorManager;
+using Unity.Collections;
+using static MCTSStrategy;
+
+
 
 public class MCTSStrategy
 {
+    public struct MCTSNode
+    {
+        public Board nodeBoard;
+        public int parentIndex;
+        public float potential;
+        public Moves rootMove;
+        public TileColor moveColor;
+        public HashSet<Moves> openMoves;
+        public HashSet<Moves> closeMoves;
+
+        public MCTSNode(Board rootBoard, Moves move, TileColor turnColor, int parentIndex, float potential)
+        {
+            this.nodeBoard = Board.getNewBoard(rootBoard, move);
+            this.rootMove = move;
+            this.parentIndex = parentIndex;
+            this.potential = potential;
+            this.moveColor = turnColor;
+            
+            openMoves = new HashSet<Moves>();
+            closeMoves = new HashSet<Moves>();
+            openMoves.AddRange(Agent.getMoves(nodeBoard, turnColor).ToArray());
+        }
+
+        public MCTSNode(MCTSNode rootNode, Moves move, int parentIndex, float potential) 
+            : this(rootNode.nodeBoard, move, (rootNode.moveColor == TileColor.White ? TileColor.Black : TileColor.White), parentIndex, potential) { }
+        public MCTSNode(Board rootBoard, TileColor turnColor, float potential)
+        {
+            this.nodeBoard = rootBoard;
+            this.parentIndex = -1;
+            this.potential = potential;
+            this.rootMove = null;
+            this.moveColor = turnColor;
+
+            openMoves = new HashSet<Moves>();
+            closeMoves = new HashSet<Moves>();
+            openMoves.AddRange(Agent.getMoves(nodeBoard, turnColor).ToArray());
+
+        }
+
+        public float getUCB(ref List<MCTSNode> nodes)
+        {
+            if (closeMoves.Count > 0 && parentIndex != -1)
+                return potential + 1 * Mathf.Sqrt(Mathf.Log(nodes[parentIndex].closeMoves.Count / closeMoves.Count));
+            else
+                return float.MaxValue;
+        }
+    }
     static Board current = new Board();
     public static float aggression = 0.5f; //a value between 0 and 1 to show whos on the defensive and whos on the offensive. used when compairing board states to decide what is actually better
-                                   //if there is a move that lowers control but has a higher score the agression decides if its worth the risk
+                                           //if there is a move that lowers control but has a higher score the agression decides if its worth the risk
     public const float ADVANTAGE = 10f;
     public const int DEPTH = 2;
-    public static /*Moves*/ void GetNextMove(Agent agent) // void is temp
+    public static Moves GetNextMove(Agent agent, float processingTime = 10f) // void is temp
     {
-        //look back at chess to relearn
-        return;
+        List<MCTSNode> nodes = new List<MCTSNode>();
+        Board start; 
+        Board.getCurrentBoard(out start);
+
+        float startTime = Time.time;
+        while(Time.time - startTime > processingTime)
+        {
+            Selection(start, nodes, agent.agentColor);
+        }
+
+        MCTSNode pickNode = nodes[1];
+
+
+        for (int i = 2; i < nodes.Count; i++)
+        {
+            if (pickNode.potential < nodes[i].potential && nodes[i].parentIndex != -1)
+            {
+                pickNode = nodes[i];
+            }
+        }
+        while (nodes[pickNode.parentIndex].parentIndex != -1)
+        {
+            if (pickNode.parentIndex < nodes.Count)
+            {
+                pickNode = nodes[pickNode.parentIndex];
+            }
+        }
+
+        return pickNode.rootMove;
     }
-    //check if we can make this smaller
+
+    //given the mcts trees and the root node select the node to explore
+    private static void Selection(Board start, List<MCTSNode> nodes, TileColor agentColor)
+    {
+        if(nodes.Count == 0)
+        {
+            MCTSNode tempNode = new MCTSNode(start, agentColor, 0);
+            nodes.Add(tempNode);
+        }
+        else
+        {
+            List<MCTSNode> bestNode = new List<MCTSNode>();
+            float UCB = 0;
+            for(int nodeIndex = 0; nodeIndex < nodes.Count; nodeIndex++)
+            {
+                float tempUCB = nodes[nodeIndex].getUCB(ref nodes);
+
+                if (bestNode.Count == 0)
+                {
+                    bestNode.Add(nodes[nodeIndex]);
+                    UCB = tempUCB;
+                }
+                else if (nodes[nodeIndex].openMoves.Count > 0)
+                {
+                    if(tempUCB == UCB)
+                    {
+                        bestNode.Add(nodes[nodeIndex]);
+                    }
+                    else
+                    {
+                        if (UCB < tempUCB)
+                        {
+                            bestNode.Clear();
+                            bestNode.Add(nodes[nodeIndex]);
+                            UCB = tempUCB;
+                        }
+                    }
+                }
+            }
+
+            int randomIndex = Random.Range(0, bestNode.Count);
+
+            if(randomIndex < nodes.Count)
+            {
+                Expansion(randomIndex, nodes);
+            }
+        }
+    }
+
+    //actually taking the board then making the move
+    private static void Expansion(int nodeIndex, List<MCTSNode> nodes)
+    {
+        if (nodeIndex >= 0)
+        {
+            if (nodes[nodeIndex].openMoves.Count > 0)
+            {
+                //std::random_device rd; //commented for open tasting
+                Moves move;
+
+                move = nodes[nodeIndex].openMoves.Last();
+                MCTSNode tempNode = new MCTSNode(nodes[nodeIndex], move, nodeIndex, 0);
+
+                float potential = Score(tempNode.nodeBoard, tempNode.moveColor == TileColor.White); //change how score works, inprove huristic to be faster and better
+                //Simulation(tempBoard, tempBoard.sideToMove());
+
+                tempNode.potential += potential;
+
+                MCTSNode backPropNode = nodes[nodeIndex];
+                while (backPropNode.parentIndex != -1)
+                {
+                    backPropNode.potential += potential;
+                    backPropNode = nodes[backPropNode.parentIndex];
+                }
+
+                nodes[nodeIndex].closeMoves.Add(move);
+                nodes[nodeIndex].openMoves.Remove(move);
+                tempNode.parentIndex = nodeIndex;
+                nodes.Add(tempNode);
+            }
+        }
+    }
+
+    //the huristic
+    //modify to not be for minimaxing, decide which board is actually better for who, maybe rely more on the WinState function/neighborGroups,
+        //make a verion of quantify board that returns neighbor group to help with this part, size, area and color of each group, this is where we would use winning
     public static float Score(Board board, bool maximizing)
     {
         board.quantifyBoard();
