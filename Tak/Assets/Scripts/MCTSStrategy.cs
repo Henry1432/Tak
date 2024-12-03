@@ -12,6 +12,7 @@ using System.Linq;
 using static Unity.Collections.AllocatorManager;
 using Unity.Collections;
 using static MCTSStrategy;
+using System;
 
 
 
@@ -66,20 +67,30 @@ public class MCTSStrategy
     }
     static Board current = new Board();
     public static float aggression = 0.5f; //a value between 0 and 1 to show whos on the defensive and whos on the offensive. used when compairing board states to decide what is actually better
-                                           //if there is a move that lowers control but has a higher score the agression decides if its worth the risk
+    private float currentTime = 0f;                                       //if there is a move that lowers control but has a higher score the agression decides if its worth the risk
     public const float ADVANTAGE = 10f;
     public const int DEPTH = 2;
-    public static Moves GetNextMove(Agent agent, float processingTime = 10f) // void is temp
+
+    private static float startTime = -1;
+
+
+
+    public static IEnumerator GetNextMove(Agent agent, float processingTime = 10f, Action<Moves> callback = null) 
     {
         List<MCTSNode> nodes = new List<MCTSNode>();
         Board start; 
         Board.getCurrentBoard(out start);
 
-        float startTime = Time.time;
-        while(Time.time - startTime > processingTime)
+        if(startTime == -1)
+            startTime = Time.time;
+            Debug.Log("start:" + startTime);
+        while(Time.time - startTime < processingTime)
         {
             Selection(start, nodes, agent.agentColor);
+            Debug.Log("running" + (Time.time - startTime) + "...");
+            yield return null;
         }
+        Debug.Log("end:" + Time.time);
 
         MCTSNode pickNode = nodes[1];
 
@@ -99,7 +110,8 @@ public class MCTSStrategy
             }
         }
 
-        return pickNode.rootMove;
+        startTime = -1;
+        callback?.Invoke(pickNode.rootMove);
     }
 
     //given the mcts trees and the root node select the node to explore
@@ -140,8 +152,8 @@ public class MCTSStrategy
                     }
                 }
             }
-
-            int randomIndex = Random.Range(0, bestNode.Count);
+            System.Random rand = new System.Random();
+            int randomIndex = rand.Next(bestNode.Count);
 
             if(randomIndex < nodes.Count)
             {
@@ -182,10 +194,8 @@ public class MCTSStrategy
             }
         }
     }
-
-    //the huristic
-    //modify to not be for minimaxing, decide which board is actually better for who, maybe rely more on the WinState function/neighborGroups,
-        //make a verion of quantify board that returns neighbor group to help with this part, size, area and color of each group, this is where we would use winning
+    //this is currently not working as this was not from the right algorithm, recheck chess to make sure it is still minimizing on black, etc, then re implement here
+        //obvously I there arent chess pieces to easily quantify, i have a feeling it will be similar but not the same
     public static float Score(Board board, bool maximizing)
     {
         board.quantifyBoard();

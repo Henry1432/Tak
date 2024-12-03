@@ -78,24 +78,36 @@ public class Agent : MonoBehaviour
                 Debug.Log("sUcc");
             */
 
-            Moves move = MiniMaxStrategy.GetNextMove(this);
+            Moves move = null;
+            StartCoroutine(MCTSStrategy.GetNextMove(this, 5f, moveReturn =>
+            {
+                move = moveReturn;
+            }));
 
             Debug.Log(DateTime.Now - save);
 
-            if(move.isPlaceStone())
+            if (move != null)
             {
-                Debug.Log(move.getOrigin() + ", isWall: " + move.isWall() + ", isCapstone: " + move.isCapstone());
-            }
-            else
-            {
-                Debug.Log(move.getOrigin() + ", Direction: " + move.getDirection() + ", Distance: " + move.getDist() + ", Abandon: " + move.getAbandon());
+                if (move.isPlaceStone())
+                {
+                    Debug.Log(move.getOrigin() + ", isWall: " + move.isWall() + ", isCapstone: " + move.isCapstone());
+                }
+                else
+                {
+                    Debug.Log(move.getOrigin() + ", Direction: " + move.getDirection() + ", Distance: " + move.getDist() + ", Abandon: " + move.getAbandon());
+                }
             }
         }
 
         if (check && (agentColor == GameController.instance.currentTurn))
         {
-            Moves nextMove = MiniMaxStrategy.GetNextMove(this);
-            check = false;
+            Moves nextMove = null;
+            StartCoroutine(MCTSStrategy.GetNextMove(this, 5f, moveReturn =>
+            {
+                Debug.Log("found");
+                nextMove = moveReturn;
+                StopAllCoroutines();
+            }));
             //moves.Clear();
 
             //System.DateTime timeTest = System.DateTime.Now;
