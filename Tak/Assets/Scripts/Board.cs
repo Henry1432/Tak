@@ -25,7 +25,7 @@ public class Board
     public Dictionary<(int, int), BoardTile> board;
     public float coverage; //0 is total black coverage, 1 is total white coverage
     public float totalControl; //avarage of control from board, same as above
-    public float proximity; //how close to a win state we are
+    public int proximity; //how close to a win state we are
     public TileColor advantage; //who the proximity is for,
             //if white is close to a win prox would be 2 and advantage would be white.
             //if black and white are both 3 away from win prox would be avarage of both(3) and advantage would be none.
@@ -332,15 +332,15 @@ public class Board
     //work with new check board situation
     public void quantifyBoard()
     {
-        proximity = Mathf.Infinity;
+        proximity = int.MaxValue;
         advantage = TileColor.None;
 
-        int winDist, whitePathCount, blackPathCount;
+        int whitePathCount, blackPathCount;
         TileColor winning;
         bool hasWinner;
 
         checkPath();
-        winState(out winDist, out whitePathCount, out blackPathCount, out winning, out hasWinner);
+        winState(out proximity, out whitePathCount, out blackPathCount, out winning, out hasWinner);
 
         float totalRoadCount = whitePathCount + blackPathCount;
         float position = ((totalControl + coverage + (whitePathCount / totalRoadCount)) / 2) * (winning == TileColor.White ? 1.2f : 0.8f);
@@ -539,9 +539,9 @@ public class Board
         }
         else
         {
-            winDist = -1;
-            whitePathCount = -1;
-            blackPathCount = -1;
+            winDist = (int)GenBoard.getSize();
+            whitePathCount = 0;
+            blackPathCount = 0;
             winning = TileColor.None;
             hasWinner = false;
         }

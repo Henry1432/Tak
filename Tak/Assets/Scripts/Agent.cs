@@ -15,6 +15,7 @@ public class Agent : MonoBehaviour
     [SerializeField] private PlayerStoneController psc;
     [SerializeField] private PlayerStoneController epsc;
     [SerializeField] private bool check = false;
+    private bool working = false;
 
     public Board TestBoard;
     public bool test;
@@ -102,12 +103,178 @@ public class Agent : MonoBehaviour
         if (check && (agentColor == GameController.instance.currentTurn))
         {
             Moves nextMove = null;
-            StartCoroutine(MCTSStrategy.GetNextMove(this, 5f, moveReturn =>
+            if(!working)
             {
-                Debug.Log("found");
-                nextMove = moveReturn;
-                StopAllCoroutines();
-            }));
+                working = true;
+                StartCoroutine(MCTSStrategy.GetNextMove(this, 10f, moveReturn =>
+                {
+                    Debug.Log("found");
+                    nextMove = moveReturn;
+                    working = false;
+                    if (nextMove.isPlaceStone())
+                    {
+                        if (nextMove.getPlaceStone() == 'w' || nextMove.getPlaceStone() == 'b')
+                        {
+                            Stone stone;
+                            if (!GameController.canWall())
+                            {
+                                stone = epsc.PlaceNextStone(nextMove.getOrigin());
+                            }
+                            else
+                            {
+                                stone = psc.PlaceNextStone(nextMove.getOrigin());
+                            }
+
+                            stone.currentTile = GenBoard.instance.board[(nextMove.getOriginX(), nextMove.getOriginY())];
+                            stone.transform.position = new Vector3(stone.currentTile.transform.position.x, stone.currentTile.transform.position.y, transform.position.z);
+                            stone.wall = nextMove.getWall() == 't' ? true : false;
+                            GenBoard.instance.board[(stone.currentTile.boardPosition.x, stone.currentTile.boardPosition.y)].stonesOnTile.Add(stone);
+                            stone.onTile = true;
+                            stone.placed = true;
+                            stone.follow = false;
+
+                            stone.gameObject.SetActive(true);
+                        }
+                        else if ((nextMove.getPlaceStone() == 'W' || nextMove.getPlaceStone() == 'B'))
+                        {
+                            if (!GameController.canWall())
+                            {
+                                Stone stone = epsc.PlaceNextStone(nextMove.getOrigin());
+                                stone.currentTile = GenBoard.instance.board[(nextMove.getOriginX(), nextMove.getOriginY())];
+                                stone.transform.position = new Vector3(stone.currentTile.transform.position.x, stone.currentTile.transform.position.y, transform.position.z);
+                                stone.wall = nextMove.getWall() == 't' ? true : false;
+                                GenBoard.instance.board[(stone.currentTile.boardPosition.x, stone.currentTile.boardPosition.y)].stonesOnTile.Add(stone);
+                                stone.onTile = true;
+                                stone.placed = true;
+                                stone.follow = false;
+                            }
+                            else
+                            {
+                                Capstone.currentTile = GenBoard.instance.board[(nextMove.getOriginX(), nextMove.getOriginY())];
+                                Capstone.transform.position = new Vector3(Capstone.currentTile.transform.position.x, Capstone.currentTile.transform.position.y, transform.position.z);
+                                GenBoard.instance.board[(Capstone.currentTile.boardPosition.x, Capstone.currentTile.boardPosition.y)].stonesOnTile.Add(Capstone);
+                                Capstone.onTile = true;
+                                Capstone.placed = true;
+                                Capstone.follow = false;
+
+                                Capstone.gameObject.SetActive(true);
+                            }
+
+                        }
+                        GameController.placeStone();
+                    }
+                    else if (nextMove.isMoveStone())
+                    {
+                        int progress = 0;
+                        Selecter selecter = GameObject.FindObjectOfType<Selecter>();
+                        try
+                        {
+
+                            for (int i = 1; i <= nextMove.getDist(); i++)
+                            {
+                                if (nextMove.getDirection() == 'u')
+                                {
+                                    Tile activeTile = GenBoard.instance.board[(nextMove.getOriginX(), nextMove.getOriginY() + progress)];
+                                    //Tile goalTile = GenBoard.instance.board[(moves[moveIndex].getOriginX(), moves[moveIndex].getOriginY() + i)];
+
+                                    selecter.transform.position = activeTile.transform.position + selecter.offset;
+                                    selecter.selectedTile = activeTile;
+                                    int abandonCount = i == 1 ? nextMove.getAbandon() : 0;
+                                    foreach (Stone stone in selecter.selectedTile.stonesOnTile)
+                                    {
+                                        if (abandonCount > 0)
+                                        {
+                                            selecter.leaveStones.Add(stone);
+                                            abandonCount--;
+                                        }
+                                        if (!selecter.leaveStones.Contains(stone) && !selecter.movingStones.Contains(stone))
+                                        {
+                                            selecter.movingStones.Add(stone);
+                                        }
+                                    }
+
+                                    selecter.MoveStones(Direction.Up);
+                                }
+                                else if (nextMove.getDirection() == 'r')
+                                {
+                                    Tile activeTile = GenBoard.instance.board[(nextMove.getOriginX() + progress, nextMove.getOriginY())];
+                                    //Tile goalTile = GenBoard.instance.board[(moves[moveIndex].getOriginX() + i, moves[moveIndex].getOriginY())];
+
+                                    selecter.transform.position = activeTile.transform.position + selecter.offset;
+                                    selecter.selectedTile = activeTile;
+                                    int abandonCount = i == 1 ? nextMove.getAbandon() : 0;
+                                    foreach (Stone stone in selecter.selectedTile.stonesOnTile)
+                                    {
+                                        if (abandonCount > 0)
+                                        {
+                                            selecter.leaveStones.Add(stone);
+                                            abandonCount--;
+                                        }
+                                        if (!selecter.leaveStones.Contains(stone) && !selecter.movingStones.Contains(stone))
+                                        {
+                                            selecter.movingStones.Add(stone);
+                                        }
+                                    }
+
+                                    selecter.MoveStones(Direction.Right);
+                                }
+                                else if (nextMove.getDirection() == 'd')
+                                {
+                                    Tile activeTile = GenBoard.instance.board[(nextMove.getOriginX(), nextMove.getOriginY() - progress)];
+                                    //Tile goalTile = GenBoard.instance.board[(moves[moveIndex].getOriginX(), moves[moveIndex].getOriginY() - i)];
+
+                                    selecter.transform.position = activeTile.transform.position + selecter.offset;
+                                    selecter.selectedTile = activeTile;
+                                    int abandonCount = i == 1 ? nextMove.getAbandon() : 0;
+                                    foreach (Stone stone in selecter.selectedTile.stonesOnTile)
+                                    {
+                                        if (abandonCount > 0)
+                                        {
+                                            selecter.leaveStones.Add(stone);
+                                            abandonCount--;
+                                        }
+                                        if (!selecter.leaveStones.Contains(stone) && !selecter.movingStones.Contains(stone))
+                                        {
+                                            selecter.movingStones.Add(stone);
+                                        }
+                                    }
+
+                                    selecter.MoveStones(Direction.Down);
+                                }
+                                else if (nextMove.getDirection() == 'l')
+                                {
+                                    Tile activeTile = GenBoard.instance.board[(nextMove.getOriginX() - progress, nextMove.getOriginY())];
+                                    //Tile goalTile = GenBoard.instance.board[(moves[moveIndex].getOriginX() - i, moves[moveIndex].getOriginY())];
+
+                                    selecter.transform.position = activeTile.transform.position + selecter.offset;
+                                    selecter.selectedTile = activeTile;
+                                    int abandonCount = i == 1 ? nextMove.getAbandon() : 0;
+                                    foreach (Stone stone in selecter.selectedTile.stonesOnTile)
+                                    {
+                                        if (abandonCount > 0)
+                                        {
+                                            selecter.leaveStones.Add(stone);
+                                            abandonCount--;
+                                        }
+                                        if (!selecter.leaveStones.Contains(stone) && !selecter.movingStones.Contains(stone))
+                                        {
+                                            selecter.movingStones.Add(stone);
+                                        }
+                                    }
+
+                                    selecter.MoveStones(Direction.Left);
+                                }
+                                progress++;
+                            }
+                        }
+                        catch
+                        {
+                            Debug.LogWarning("Attempt to move off the board, try again");
+                        }
+                        selecter.EndTurn();
+                    }
+                }));
+            }
             //moves.Clear();
 
             //System.DateTime timeTest = System.DateTime.Now;
@@ -124,172 +291,6 @@ public class Agent : MonoBehaviour
                     moveIndex = UnityEngine.Random.Range(0, moves.Count - 1);
                 }
             }*/
-
-            if (nextMove != null)
-            {
-                if (nextMove.isPlaceStone())
-                {
-                    if (nextMove.getPlaceStone() == 'w' || nextMove.getPlaceStone() == 'b')
-                    {
-                        Stone stone;
-                        if (!GameController.canWall())
-                        {
-                            stone = epsc.PlaceNextStone(nextMove.getOrigin());
-                        }
-                        else
-                        {
-                            stone = psc.PlaceNextStone(nextMove.getOrigin());
-                        }
-
-                        stone.currentTile = GenBoard.instance.board[(nextMove.getOriginX(), nextMove.getOriginY())];
-                        stone.transform.position = new Vector3(stone.currentTile.transform.position.x, stone.currentTile.transform.position.y, transform.position.z);
-                        stone.wall = nextMove.getWall() == 't' ? true : false;
-                        GenBoard.instance.board[(stone.currentTile.boardPosition.x, stone.currentTile.boardPosition.y)].stonesOnTile.Add(stone);
-                        stone.onTile = true;
-                        stone.placed = true;
-                        stone.follow = false;
-
-                        stone.gameObject.SetActive(true);
-                    }
-                    else if ((nextMove.getPlaceStone() == 'W' || nextMove.getPlaceStone() == 'B'))
-                    {
-                        if(!GameController.canWall())
-                        {
-                            Stone stone = epsc.PlaceNextStone(nextMove.getOrigin());
-                            stone.currentTile = GenBoard.instance.board[(nextMove.getOriginX(), nextMove.getOriginY())];
-                            stone.transform.position = new Vector3(stone.currentTile.transform.position.x, stone.currentTile.transform.position.y, transform.position.z);
-                            stone.wall = nextMove.getWall() == 't' ? true : false;
-                            GenBoard.instance.board[(stone.currentTile.boardPosition.x, stone.currentTile.boardPosition.y)].stonesOnTile.Add(stone);
-                            stone.onTile = true;
-                            stone.placed = true;
-                            stone.follow = false;
-                        }
-                        else
-                        {
-                            Capstone.currentTile = GenBoard.instance.board[(nextMove.getOriginX(), nextMove.getOriginY())];
-                            Capstone.transform.position = new Vector3(Capstone.currentTile.transform.position.x, Capstone.currentTile.transform.position.y, transform.position.z);
-                            GenBoard.instance.board[(Capstone.currentTile.boardPosition.x, Capstone.currentTile.boardPosition.y)].stonesOnTile.Add(Capstone);
-                            Capstone.onTile = true;
-                            Capstone.placed = true;
-                            Capstone.follow = false;
-
-                            Capstone.gameObject.SetActive(true);
-                        }
-
-                    }
-                    GameController.placeStone();
-                }
-                else if (nextMove.isMoveStone())
-                {
-                    int progress = 0;
-                    Selecter selecter = GameObject.FindObjectOfType<Selecter>();
-                    try
-                    {
-
-                        for (int i = 1; i <= nextMove.getDist(); i++)
-                        {
-                            if (nextMove.getDirection() == 'u')
-                            {
-                                Tile activeTile = GenBoard.instance.board[(nextMove.getOriginX(), nextMove.getOriginY() + progress)];
-                                //Tile goalTile = GenBoard.instance.board[(moves[moveIndex].getOriginX(), moves[moveIndex].getOriginY() + i)];
-
-                                selecter.transform.position = activeTile.transform.position + selecter.offset;
-                                selecter.selectedTile = activeTile;
-                                int abandonCount = i == 1 ? nextMove.getAbandon() : 0;
-                                foreach (Stone stone in selecter.selectedTile.stonesOnTile)
-                                {
-                                    if(abandonCount > 0)
-                                    {
-                                        selecter.leaveStones.Add(stone);
-                                        abandonCount--;
-                                    }
-                                    if (!selecter.leaveStones.Contains(stone) && !selecter.movingStones.Contains(stone))
-                                    {
-                                        selecter.movingStones.Add(stone);
-                                    }
-                                }
-
-                                selecter.MoveStones(Direction.Up);
-                            }
-                            else if (nextMove.getDirection() == 'r')
-                            {
-                                Tile activeTile = GenBoard.instance.board[(nextMove.getOriginX() + progress, nextMove.getOriginY() )];
-                                //Tile goalTile = GenBoard.instance.board[(moves[moveIndex].getOriginX() + i, moves[moveIndex].getOriginY())];
-
-                                selecter.transform.position = activeTile.transform.position + selecter.offset;
-                                selecter.selectedTile = activeTile;
-                                int abandonCount = i == 1 ? nextMove.getAbandon() : 0;
-                                foreach (Stone stone in selecter.selectedTile.stonesOnTile)
-                                {
-                                    if (abandonCount > 0)
-                                    {
-                                        selecter.leaveStones.Add(stone);
-                                        abandonCount--;
-                                    }
-                                    if (!selecter.leaveStones.Contains(stone) && !selecter.movingStones.Contains(stone))
-                                    {
-                                        selecter.movingStones.Add(stone);
-                                    }
-                                }
-
-                                selecter.MoveStones(Direction.Right);
-                            }
-                            else if (nextMove.getDirection() == 'd')
-                            {
-                                Tile activeTile = GenBoard.instance.board[(nextMove.getOriginX(), nextMove.getOriginY() - progress)];
-                                //Tile goalTile = GenBoard.instance.board[(moves[moveIndex].getOriginX(), moves[moveIndex].getOriginY() - i)];
-
-                                selecter.transform.position = activeTile.transform.position + selecter.offset;
-                                selecter.selectedTile = activeTile;
-                                int abandonCount = i == 1 ? nextMove.getAbandon() : 0;
-                                foreach (Stone stone in selecter.selectedTile.stonesOnTile)
-                                {
-                                    if (abandonCount > 0)
-                                    {
-                                        selecter.leaveStones.Add(stone);
-                                        abandonCount--;
-                                    }
-                                    if (!selecter.leaveStones.Contains(stone) && !selecter.movingStones.Contains(stone))
-                                    {
-                                        selecter.movingStones.Add(stone);
-                                    }
-                                }
-
-                                selecter.MoveStones(Direction.Down);
-                            }
-                            else if (nextMove.getDirection() == 'l')
-                            {
-                                Tile activeTile = GenBoard.instance.board[(nextMove.getOriginX() - progress, nextMove.getOriginY())];
-                                //Tile goalTile = GenBoard.instance.board[(moves[moveIndex].getOriginX() - i, moves[moveIndex].getOriginY())];
-
-                                selecter.transform.position = activeTile.transform.position + selecter.offset;
-                                selecter.selectedTile = activeTile;
-                                int abandonCount = i == 1 ? nextMove.getAbandon() : 0;
-                                foreach (Stone stone in selecter.selectedTile.stonesOnTile)
-                                {
-                                    if (abandonCount > 0)
-                                    {
-                                        selecter.leaveStones.Add(stone);
-                                        abandonCount--;
-                                    }
-                                    if (!selecter.leaveStones.Contains(stone) && !selecter.movingStones.Contains(stone))
-                                    {
-                                        selecter.movingStones.Add(stone);
-                                    }
-                                }
-
-                                selecter.MoveStones(Direction.Left);
-                            }
-                            progress++;
-                        }
-                    }
-                    catch
-                    {
-                        Debug.LogWarning("Attempt to move off the board, try again");
-                    }
-                    selecter.EndTurn();
-                }
-            }
 
             //Debug.Log(System.DateTime.Now - timeTest);
         }

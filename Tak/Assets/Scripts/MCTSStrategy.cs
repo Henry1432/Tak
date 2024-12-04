@@ -72,22 +72,24 @@ public class MCTSStrategy
     public const int DEPTH = 2;
 
     private static float startTime = -1;
+    private static List<MCTSNode> nodes = new List<MCTSNode>();
 
 
 
     public static IEnumerator GetNextMove(Agent agent, float processingTime = 10f, Action<Moves> callback = null) 
     {
-        List<MCTSNode> nodes = new List<MCTSNode>();
-        Board start; 
-        Board.getCurrentBoard(out start);
+        Board.getCurrentBoard(out current);
 
         if(startTime == -1)
+        {
             startTime = Time.time;
-            Debug.Log("start:" + startTime);
+            nodes.Clear();
+        }
+        Debug.Log("start:" + startTime);
         while(Time.time - startTime < processingTime)
         {
-            Selection(start, nodes, agent.agentColor);
-            Debug.Log("running" + (Time.time - startTime) + "...");
+            Selection(current, nodes, agent.agentColor);
+            //Debug.Log("running" + (Time.time - startTime) + "...");
             yield return null;
         }
         Debug.Log("end:" + Time.time);
@@ -198,11 +200,13 @@ public class MCTSStrategy
         //obvously I there arent chess pieces to easily quantify, i have a feeling it will be similar but not the same
     public static float Score(Board board, bool maximizing)
     {
+        current.quantifyBoard();
         board.quantifyBoard();
 
         float score = 0;
         bool boost = true;
         if(maximizing)
+        {
             if(board.advantage == TileColor.White)
             {
                 aggression *= 1.25f;
@@ -221,7 +225,10 @@ public class MCTSStrategy
                 else
                     boost = false;
             }
+        }
         else
+        {
+
             if (board.advantage == TileColor.White)
             {
                 aggression *= 0.75f;
@@ -240,6 +247,7 @@ public class MCTSStrategy
                 else
                     boost = false;
             }
+        }
 
         if (board.win == TileColor.White)
         {
