@@ -102,6 +102,7 @@ public class Agent : MonoBehaviour
 
         if (check && (agentColor == GameController.instance.currentTurn))
         {
+            check = false;
             Moves nextMove = null;
             if(!working)
             {

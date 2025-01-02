@@ -35,13 +35,13 @@ public class MCTSStrategy
             this.parentIndex = parentIndex;
             this.potential = potential;
             this.moveColor = turnColor;
-            
+
             openMoves = new HashSet<Moves>();
             closeMoves = new HashSet<Moves>();
             openMoves.AddRange(Agent.getMoves(nodeBoard, turnColor).ToArray());
         }
 
-        public MCTSNode(MCTSNode rootNode, Moves move, int parentIndex, float potential) 
+        public MCTSNode(MCTSNode rootNode, Moves move, int parentIndex, float potential)
             : this(rootNode.nodeBoard, move, (rootNode.moveColor == TileColor.White ? TileColor.Black : TileColor.White), parentIndex, potential) { }
         public MCTSNode(Board rootBoard, TileColor turnColor, float potential)
         {
@@ -76,32 +76,38 @@ public class MCTSStrategy
 
 
 
-    public static IEnumerator GetNextMove(Agent agent, float processingTime = 10f, Action<Moves> callback = null) 
+    public static IEnumerator GetNextMove(Agent agent, float processingTime = 10f, Action<Moves> callback = null)
     {
         Board.getCurrentBoard(out current);
 
-        if(startTime == -1)
+        if (startTime == -1)
         {
             startTime = Time.time;
             nodes.Clear();
+            current.quantifyBoard();
+            Debug.Log(current.neighborGroups.Count);
         }
-        Debug.Log("start:" + startTime);
-        while(Time.time - startTime < processingTime)
+        //Debug.Log("start:" + startTime);
+        while (Time.time - startTime < processingTime)
         {
             Selection(current, nodes, agent.agentColor);
             //Debug.Log("running" + (Time.time - startTime) + "...");
             yield return null;
         }
-        Debug.Log("end:" + Time.time);
+        //Debug.Log("end:" + Time.time);
 
         MCTSNode pickNode = nodes[1];
 
 
         for (int i = 2; i < nodes.Count; i++)
         {
-            if (pickNode.potential < nodes[i].potential && nodes[i].parentIndex != -1)
+            //find the best node
+            if(nodes[i].parentIndex != -1)
             {
-                pickNode = nodes[i];
+                if (pickNode.potential < nodes[i].potential && nodes[nodes[i].parentIndex].parentIndex == -1)
+                {
+                    pickNode = nodes[i];
+                }
             }
         }
         while (nodes[pickNode.parentIndex].parentIndex != -1)
@@ -119,7 +125,7 @@ public class MCTSStrategy
     //given the mcts trees and the root node select the node to explore
     private static void Selection(Board start, List<MCTSNode> nodes, TileColor agentColor)
     {
-        if(nodes.Count == 0)
+        if (nodes.Count == 0)
         {
             MCTSNode tempNode = new MCTSNode(start, agentColor, 0);
             nodes.Add(tempNode);
@@ -128,7 +134,7 @@ public class MCTSStrategy
         {
             List<MCTSNode> bestNode = new List<MCTSNode>();
             float UCB = 0;
-            for(int nodeIndex = 0; nodeIndex < nodes.Count; nodeIndex++)
+            for (int nodeIndex = 0; nodeIndex < nodes.Count; nodeIndex++)
             {
                 float tempUCB = nodes[nodeIndex].getUCB(ref nodes);
 
@@ -139,7 +145,7 @@ public class MCTSStrategy
                 }
                 else if (nodes[nodeIndex].openMoves.Count > 0)
                 {
-                    if(tempUCB == UCB)
+                    if (tempUCB == UCB)
                     {
                         bestNode.Add(nodes[nodeIndex]);
                     }
@@ -157,15 +163,15 @@ public class MCTSStrategy
             System.Random rand = new System.Random();
             int randomIndex = rand.Next(bestNode.Count);
 
-            if(randomIndex < nodes.Count)
+            if (randomIndex < nodes.Count)
             {
-                Expansion(randomIndex, nodes);
+                Expansion(randomIndex, nodes, agentColor);
             }
         }
     }
 
     //actually taking the board then making the move
-    private static void Expansion(int nodeIndex, List<MCTSNode> nodes)
+    private static void Expansion(int nodeIndex, List<MCTSNode> nodes, TileColor agentColor)
     {
         if (nodeIndex >= 0)
         {
@@ -174,10 +180,12 @@ public class MCTSStrategy
                 //std::random_device rd; //commented for open tasting
                 Moves move;
 
-                move = nodes[nodeIndex].openMoves.Last();
+                System.Random rand = new System.Random();
+                int randomIndex = rand.Next(nodes[nodeIndex].openMoves.Count);
+                move = nodes[nodeIndex].openMoves.ElementAt(randomIndex);
                 MCTSNode tempNode = new MCTSNode(nodes[nodeIndex], move, nodeIndex, 0);
 
-                float potential = Score(tempNode.nodeBoard, tempNode.moveColor == TileColor.White); //change how score works, inprove huristic to be faster and better
+                float potential = Score(tempNode.nodeBoard, tempNode.moveColor, agentColor); //change how score works, inprove huristic to be faster and better
                 //Simulation(tempBoard, tempBoard.sideToMove());
 
                 tempNode.potential += potential;
@@ -196,6 +204,56 @@ public class MCTSStrategy
             }
         }
     }
+
+    public static float Score(Board board, TileColor moveColor, TileColor agentColor)
+    {
+        current.quantifyBoard();
+        board.quantifyBoard();
+
+        board.winState(out int winDist, out int whitePathCount, out int blackPathCount, out TileColor winning, out bool hasWinner);
+
+        float score = (((int)GenBoard.getSize() - 1) - winDist);
+        
+        
+        if(winning == TileColor.None)
+        {
+        }
+        else if (winning == agentColor)
+        {
+            score += (((int)GenBoard.getSize() - 1) - winDist) * 2;
+            aggression *= 1.25f;
+        }
+        else
+        {
+            aggression *= 0.75f;
+            score -= (((int)GenBoard.getSize() - 1) - winDist);
+        }
+        
+        if(hasWinner && winning == agentColor)
+        {
+            score += 100000;
+        }
+        else if(hasWinner && winning != agentColor)
+        {
+            score -= 100000;
+        }
+        Math.Clamp(aggression, 0.2f, 1f);
+
+
+        //float position = ((board.coverage * aggression) + (board.totalControl * (1 - aggression))) * 10;
+        //if(moveColor == agentColor)
+        //{
+        //    score += position;
+        //}
+        //else
+        //{
+        //    score -= position;
+        //}
+
+
+        return score;
+    }
+
     //this is currently not working as this was not from the right algorithm, recheck chess to make sure it is still minimizing on black, etc, then re implement here
         //obvously I there arent chess pieces to easily quantify, i have a feeling it will be similar but not the same
     public static float Score(Board board, bool maximizing)
@@ -209,7 +267,6 @@ public class MCTSStrategy
         {
             if(board.advantage == TileColor.White)
             {
-                aggression *= 1.25f;
                 Mathf.Clamp(aggression, 0.1f, 0.9f);
                 if (current.proximity > board.proximity)
                     boost = true;

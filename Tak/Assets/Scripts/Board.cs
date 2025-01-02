@@ -38,7 +38,7 @@ public class Board
     public Moves saveMove;
     public float SaveScore;
 
-    private Dictionary<int, List<BoardTile>> neighborGroups = null;
+    public Dictionary<int, List<BoardTile>> neighborGroups = null;
     public Board()
     {
         board = new Dictionary<(int, int), BoardTile>();
@@ -405,6 +405,10 @@ public class Board
 
     private void searchNeighbors(BoardTile target, int group, Stack<BoardTile> frontier)
     {
+        if(target.stonesOnTile.Last().wall)
+        {
+            return;
+        }
         //ifthere is a neighbor to the left that isnt already in the fronteir add it to the frontier
         if (target.boardPosition.x > 0)
         {
@@ -586,27 +590,16 @@ public class Board
                 whiteStonesOnTile++;
             }
         }
-        float control = ((whiteStonesOnTile / stones.Count) * 0.4f) + 0.3f;
+        float control = ((whiteStonesOnTile / stones.Count));
         if (stones.Last().cap)
         {
             if (stones.Last().stoneColor == TileColor.White)
             {
-                control += 0.3f;
+                control += 0.1f;
             }
             else
             {
-                control -= 0.3f;
-            }
-        }
-        else if (stones.Last().wall)
-        {
-            if (stones.Last().stoneColor == TileColor.White)
-            {
-                control += 0.2f;
-            }
-            else
-            {
-                control -= 0.2f;
+                control -= 0.1f;
             }
         }
 
@@ -614,29 +607,19 @@ public class Board
     }
     private static float getTileControl(int whiteStones, int blackStones, bool wall, bool cap, TileColor owner)
     {
-        float control = ((whiteStones / (whiteStones + blackStones)) * 0.4f) + 0.3f;
+        float control = ((whiteStones / (whiteStones + blackStones)));
         if (whiteStones + blackStones == 0)
             control = 0.5f;
+
         if (cap)
         {
             if (owner == TileColor.White)
             {
-                control += 0.3f;
+                control += 0.1f;
             }
             else
             {
-                control -= 0.3f;
-            }
-        }
-        else if (wall)
-        {
-            if (owner == TileColor.White)
-            {
-                control += 0.2f;
-            }
-            else
-            {
-                control -= 0.2f;
+                control -= 0.1f;
             }
         }
 
