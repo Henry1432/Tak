@@ -11,6 +11,7 @@ public class TestBoardWin : MonoBehaviour
     public int blackPathCount;
     public TileColor winning;
     public bool hasWinner;
+    public List<Vector2> wallPoints;
 
     void Update()
     {
@@ -20,7 +21,7 @@ public class TestBoardWin : MonoBehaviour
         {
             check = false;
             currentBoard.checkPath();
-            currentBoard.winState(out winDist, out whitePathCount, out blackPathCount, out winning, out hasWinner);
+            currentBoard.winState(out winDist, out whitePathCount, out blackPathCount, out winning, out hasWinner, out wallPoints);
         }
     }
 }

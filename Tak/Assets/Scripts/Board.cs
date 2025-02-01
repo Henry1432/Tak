@@ -2,11 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Unity.VisualScripting;
 using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
 using UnityEngine.AI;
 using static UnityEngine.GraphicsBuffer;
+using Vector2 = UnityEngine.Vector2;
 
 public class BoardTile
 {
@@ -338,9 +340,10 @@ public class Board
         int whitePathCount, blackPathCount;
         TileColor winning;
         bool hasWinner;
+        List<Vector2> wallPoints;
 
         checkPath();
-        winState(out proximity, out whitePathCount, out blackPathCount, out winning, out hasWinner);
+        winState(out proximity, out whitePathCount, out blackPathCount, out winning, out hasWinner, out wallPoints);
 
         float totalRoadCount = whitePathCount + blackPathCount;
         float position = ((totalControl + coverage + (whitePathCount / totalRoadCount)) / 2) * (winning == TileColor.White ? 1.2f : 0.8f);
@@ -474,10 +477,14 @@ public class Board
     }
 
     //take the path closest to winning
-    public void winState(out int winDist, out int whitePathCount, out int blackPathCount, out TileColor winning, out bool hasWinner)
+    public void winState(out int winDist, out int whitePathCount, out int blackPathCount, out TileColor winning, out bool hasWinner, out List<Vector2> wallPoints)
     {
+        int xEdge, xPos, yEdge, yPos;
         whitePathCount = 0; blackPathCount = 0;
-        if(neighborGroups.Count > 0)
+        wallPoints = new List<Vector2>();
+        Vector2 tempHighPointX = -Vector2.one, tempHighPointY = -Vector2.one;
+        Vector2 tempLowPointX = -Vector2.one, tempLowPointY = -Vector2.one;
+        if (neighborGroups.Count > 0)
         {
             Dictionary<int, int> groupWinDist = new Dictionary<int, int>();
             foreach(var group in neighborGroups)
@@ -490,19 +497,23 @@ public class Board
                     if(tile.boardPosition.x < lowestX)
                     {
                         lowestX = (int)tile.boardPosition.x;
+                        tempLowPointX = tile.boardPosition;
                     }
                     if(tile.boardPosition.x > highestX)
                     {
                         highestX = (int)tile.boardPosition.x;
+                        tempHighPointX = tile.boardPosition;
                     }
 
                     if (tile.boardPosition.y < lowestY)
                     {
                         lowestY = (int)tile.boardPosition.y;
+                        tempLowPointY = tile.boardPosition;
                     }
                     if (tile.boardPosition.y > highestY)
                     {
                         highestY = (int)tile.boardPosition.y;
+                        tempHighPointY = tile.boardPosition;
                     }
                 }
                 int pathSizeX = (highestX - lowestX);
@@ -517,6 +528,29 @@ public class Board
                 else if (group.Value.First().owner == TileColor.Black)
                 {
                     blackPathCount += 1;
+                }
+                
+                if(lowestX == 0 || lowestY == 0)
+                {
+                    if(highestX > highestY)
+                    {
+                        wallPoints.Add(new Vector2(tempHighPointX.x + 1, tempHighPointX.y));
+                    }
+                    else
+                    {
+                        wallPoints.Add(new Vector2(tempHighPointY.x, tempHighPointY.y + 1));
+                    }
+                }
+                else
+                {
+                    if (lowestX < lowestY)
+                    {
+                        wallPoints.Add(new Vector2(tempLowPointX.x - 1, tempLowPointX.y));
+                    }
+                    else
+                    {
+                        wallPoints.Add(new Vector2(tempLowPointY.x, tempLowPointY.y - 1));
+                    }
                 }
             }
 
@@ -624,6 +658,21 @@ public class Board
         }
 
         return control;
+    }
+
+    public float CalculateGroupScore(float sizeFactor = 1.5f, int groupPenalty = 10)
+    {
+        int score = 0;
+        int totalGroups = neighborGroups.Count;
+
+        foreach (var group in neighborGroups)
+        {
+            int groupSize = group.Value.Count;
+            score += (int)Math.Pow(groupSize, sizeFactor);
+        }
+
+        score -= groupPenalty * totalGroups; // Penalize more groups
+        return score;
     }
 
     public int getStonesOnTile(Vector2 tilePos)

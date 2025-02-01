@@ -210,12 +210,14 @@ public class MCTSStrategy
         current.quantifyBoard();
         board.quantifyBoard();
 
-        board.winState(out int winDist, out int whitePathCount, out int blackPathCount, out TileColor winning, out bool hasWinner);
+        board.winState(out int winDist, out int whitePathCount, out int blackPathCount, out TileColor winning, out bool hasWinner, out List<Vector2> wallPoints);
 
         float score = (((int)GenBoard.getSize() - 1) - winDist);
-        
-        
-        if(winning == TileColor.None)
+        score += board.CalculateGroupScore();
+
+
+
+        if (winning == TileColor.None)
         {
         }
         else if (winning == agentColor)
@@ -228,6 +230,22 @@ public class MCTSStrategy
             aggression *= 0.75f;
             score -= (((int)GenBoard.getSize() - 1) - winDist);
         }
+
+        if(board.saveMove.isPlaceStone())
+        {
+            if(wallPoints.Contains(board.saveMove.getOrigin()))
+            {
+                if(board.saveMove.isWall())
+                {
+                    score += 8;
+                }
+                else
+                {
+                    score += 4;
+                }
+            }
+        }
+
         
         if(hasWinner && winning == agentColor)
         {
@@ -254,8 +272,11 @@ public class MCTSStrategy
         return score;
     }
 
+   
+
+
     //this is currently not working as this was not from the right algorithm, recheck chess to make sure it is still minimizing on black, etc, then re implement here
-        //obvously I there arent chess pieces to easily quantify, i have a feeling it will be similar but not the same
+    //obvously I there arent chess pieces to easily quantify, i have a feeling it will be similar but not the same
     public static float Score(Board board, bool maximizing)
     {
         current.quantifyBoard();
