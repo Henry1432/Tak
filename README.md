@@ -15,3 +15,7 @@ Pick up any number of stones up to the carry limit for the board you’re playin
 The object of Tak is to connect any two opposite edges of the board with your flat stones and capstone, creating a road. Any square or stack you control can count as part of a road(except ones with walls on them), but stones in a stack controlled by the other player do not. A road does not have to be a straight line; it can zig-zag across the board as long as all squares in the road are adjacent, not diagonal. If a player makes a single move that creates a road for both players, then the player who made the move wins. In the event that neither player creates a road and the board is either completely filled (no empty squares) or one of the players places their last piece, a secondary win condition comes into effect. When either of those cases is met, the game immediately ends and the winner is determined by counting who has more flat stones controlling the board. Only flat stones on the top of stacks or solely occupying a square are counted. The player with the higher flat count wins. A tie in the count results in a tie game.
 
 see https://ustak.org/play-beautiful-game-tak/ for more info
+
+
+#The Upgrade
+	I have been doing minor and major changes to the functionality of the core systems of this boardgame to improve speed and skill of the ai, culminating in the implementation of Monte Carlo Tree Search. I will be disecting the development process of this ai more exactly on my portfolio.
