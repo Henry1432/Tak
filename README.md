@@ -1,3 +1,5 @@
+To play go to builds and download MCTSbuild
+
 # Tak Rules of Play
 
 Tak is played on a square board with even spaces like a chessboard. Unlike most other strategy games, however, it can be played on several different-sized boards. At the beginning of the game, the board starts empty and each player is given the appropriate number of stones for the board size: 5x5 = 21 stones per player, 6x6 = 30, 7x7 = 40 + 1 extra capstone

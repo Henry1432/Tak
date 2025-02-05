@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 using Vector3 = UnityEngine.Vector3;
 
 public class Agent : MonoBehaviour
@@ -14,6 +15,7 @@ public class Agent : MonoBehaviour
     [SerializeField] private Stone Capstone;
     [SerializeField] private PlayerStoneController psc;
     [SerializeField] private PlayerStoneController epsc;
+    [SerializeField] private Slider slider;
     [SerializeField] private bool check = false;
     private bool working = false;
 
@@ -80,7 +82,8 @@ public class Agent : MonoBehaviour
             */
 
             Moves move = null;
-            StartCoroutine(MCTSStrategy.GetNextMove(this, 5f, moveReturn =>
+            Debug.Log(slider.value);
+            StartCoroutine(MCTSStrategy.GetNextMove(this, slider.value, moveReturn =>
             {
                 move = moveReturn;
             }));
@@ -107,7 +110,8 @@ public class Agent : MonoBehaviour
             if(!working)
             {
                 working = true;
-                StartCoroutine(MCTSStrategy.GetNextMove(this, 10f, moveReturn =>
+
+                StartCoroutine(MCTSStrategy.GetNextMove(this, slider.value, moveReturn =>
                 {
                     Debug.Log("found");
                     nextMove = moveReturn;

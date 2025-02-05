@@ -215,7 +215,10 @@ public class MCTSStrategy
         float score = (((int)GenBoard.getSize() - 1) - winDist);
         score += board.CalculateGroupScore();
 
-
+        if (board.neighborGroups.Count == 0)
+        {
+            score -= 10;
+        }
 
         if (winning == TileColor.None)
         {
