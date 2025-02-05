@@ -18,4 +18,5 @@ see https://ustak.org/play-beautiful-game-tak/ for more info
 
 
 # The Upgrade
-	I have been doing minor and major changes to the functionality of the core systems of this boardgame to improve speed and skill of the ai, culminating in the implementation of Monte Carlo Tree Search. I will be disecting the development process of this ai more exactly on my portfolio.
+
+I have been doing minor and major changes to the functionality of the core systems of this boardgame to improve speed and skill of the ai, culminating in the implementation of Monte Carlo Tree Search. I will be disecting the development process of this ai more exactly on my portfolio.
